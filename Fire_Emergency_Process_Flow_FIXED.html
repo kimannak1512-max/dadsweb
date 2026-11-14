@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Emergency Process — Live Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style id="app-style">
+:root{
+  --bg:#12161B; --surface:#1B2129; --surface2:#222A34; --border:#2E3846;
+  --ink:#E7EAEE; --muted:#8A93A0; --muted2:#5B6472;
+  --accent:#F2A340; --danger:#E1483A; --success:#3FAE7A; --decision:#D6487F;
+  --font-display:'Oswald',sans-serif; --font-ui:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--font-ui);}
+button,input,select,textarea{font-family:var(--font-ui);color:var(--ink);}
+h1,h2,h3{font-family:var(--font-display);font-weight:500;letter-spacing:.02em;margin:0;}
+
+#app{display:flex;flex-direction:column;height:100vh;}
+
+/* toolbar */
+#toolbar{display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+#toolbar .title{font-family:var(--font-display);font-size:18px;letter-spacing:.04em;color:var(--accent);margin-right:8px;white-space:nowrap;}
+.mode-toggle{display:flex;background:var(--surface2);border-radius:8px;padding:2px;}
+.mode-toggle button{background:transparent;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--muted);}
+.mode-toggle button.active{background:var(--accent);color:#1B140A;font-weight:600;}
+.toolbar-group{display:flex;align-items:center;gap:6px;}
+.tbtn{background:var(--surface2);border:1px solid var(--border);color:var(--ink);padding:7px 11px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;}
+.tbtn:hover{border-color:var(--muted2);}
+.tbtn.active{background:var(--accent);color:#1B140A;border-color:var(--accent);}
+.tbtn:disabled{opacity:.4;cursor:not-allowed;}
+.tbtn.danger{color:var(--danger);}
+#search-input{background:var(--surface2);border:1px solid var(--border);color:var(--ink);padding:7px 10px;border-radius:6px;font-size:13px;width:160px;}
+.spacer{flex:1;}
+.divider{width:1px;height:22px;background:var(--border);}
+
+/* main layout */
+#main{flex:1;display:flex;overflow:hidden;position:relative;}
+#left-panel{width:220px;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:14px;flex-shrink:0;}
+#right-panel{width:300px;background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;padding:14px;flex-shrink:0;display:flex;flex-direction:column;}
+.panel-title{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+
+.lane-toggle{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 0;cursor:pointer;color:var(--ink);}
+.lane-swatch{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+.var-row{margin-bottom:12px;}
+.var-label{font-size:12px;color:var(--muted);margin-bottom:5px;line-height:1.4;}
+.var-toggle{border:1px solid var(--border);background:var(--surface2);border-radius:16px;padding:5px 14px;font-size:12px;cursor:pointer;font-weight:600;}
+.var-toggle.on{background:var(--success);color:#08241A;border-color:var(--success);}
+.var-toggle.off{background:var(--surface2);color:var(--muted);}
+.var-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;}
+
+#canvas-viewport{flex:1;position:relative;overflow:hidden;cursor:grab;background:
+  radial-gradient(circle at 1px 1px, rgba(255,255,255,.04) 1px, transparent 0) 0 0/22px 22px, var(--bg);}
+#canvas-viewport:active{cursor:grabbing;}
+#canvas-inner{position:absolute;top:0;left:0;transform-origin:0 0;}
+#canvas-svg{display:block;}
+
+.lane-band{opacity:.5;}
+:root{--lane-a:#161B22;--lane-b:#1A2029;}
+.lane-label{font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:.06em;}
+
+.node{cursor:pointer;}
+.node-shape{fill:color-mix(in srgb, var(--role-color) 16%, var(--surface));stroke:var(--role-color);stroke-width:1.4;}
+.node.type-decision .node-shape{stroke-width:1.6;}
+.subprocess-inner{fill:none;stroke:var(--role-color);stroke-width:1;opacity:.6;}
+.node-label{fill:var(--ink);font-size:12.5px;font-family:var(--font-ui);pointer-events:none;}
+.node-sla{fill:var(--muted2);font-size:10px;font-family:var(--font-mono);pointer-events:none;}
+.comment-badge{fill:var(--accent);}
+.notice-badge{cursor:pointer;}
+.notice-badge circle{transition:r .12s;}
+.notice-badge:hover circle{r:9.5;}
+.node.selected .node-shape{stroke-width:2.6;filter:drop-shadow(0 0 6px rgba(242,163,64,.5));}
+.node.match .node-shape{stroke:var(--accent);stroke-width:2.6;}
+.node.connect-source .node-shape{stroke-dasharray:4 3;stroke:var(--accent);}
+.node.current .node-shape{stroke-width:2.6;filter:drop-shadow(0 0 10px rgba(242,163,64,.6));}
+.node.visited .node-shape{opacity:.85;}
+.node.dim{opacity:.35;}
+.node.nevercovered .node-shape{stroke-dasharray:4 3;}
+
+.edge-path{fill:none;stroke:var(--muted2);stroke-width:1.6;}
+.edge-hit{fill:none;stroke:transparent;stroke-width:16;cursor:pointer;}
+.edge-path.edge-selected{stroke:var(--accent);stroke-width:2.4;}
+.edge-path.edge-yes{stroke:var(--success);}
+.edge-path.edge-no{stroke:var(--danger);}
+.edge-path.edge-visited{stroke-width:2.6;filter:drop-shadow(0 0 4px rgba(242,163,64,.4));}
+.edge-path.edge-dim{opacity:.25;}
+.edge-path.edge-nevercovered{stroke-dasharray:3 4;}
+.edge-label{fill:var(--muted);font-size:10.5px;font-family:var(--font-mono);text-anchor:middle;pointer-events:none;}
+
+@keyframes flicker{0%,100%{transform:scale(1) rotate(-2deg);opacity:1;}50%{transform:scale(1.12) rotate(2deg);opacity:.85;}}
+.token{transition:transform .5s cubic-bezier(.4,0,.2,1);}
+.token .flame{fill:var(--accent);transform-origin:0 4px;animation:flicker 1.1s ease-in-out infinite;}
+.token.no-anim{transition:none;}
+.token.no-anim .flame{animation:none;}
+
+/* minimap */
+#minimap{position:absolute;bottom:16px;right:16px;width:186px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;}
+#minimap-svg{width:170px;height:auto;cursor:pointer;background:var(--bg);border-radius:4px;}
+.mini-viewport{fill:rgba(242,163,64,.15);stroke:var(--accent);stroke-width:1;}
+
+/* zoom controls */
+#zoom-controls{position:absolute;bottom:16px;left:16px;display:flex;flex-direction:column;gap:4px;}
+#zoom-controls button{width:32px;height:32px;background:var(--surface);border:1px solid var(--border);color:var(--ink);border-radius:6px;cursor:pointer;font-size:15px;}
+
+/* inspector */
+#inspector-content{flex:1;overflow-y:auto;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+.field input, .field select, .field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:13px;}
+.sub-block{margin:16px 0;padding-top:12px;border-top:1px solid var(--border);}
+.sub-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.kv-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+.kv-row select{flex:0 0 90px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:12px;}
+.kv-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;}
+.add-btn{background:none;border:1px dashed var(--border);color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;width:100%;}
+.icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;}
+.icon-btn.danger:hover{color:var(--danger);}
+.comment-row{background:var(--surface2);border-radius:6px;padding:8px;margin-bottom:6px;position:relative;}
+.comment-text{font-size:12.5px;padding-right:20px;}
+.comment-ts{font-size:10px;color:var(--muted2);margin-top:4px;font-family:var(--font-mono);}
+.comment-row .icon-btn{position:absolute;top:4px;right:4px;}
+.inspector-actions{display:flex;gap:8px;margin-top:16px;}
+.action-btn{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--ink);padding:8px;border-radius:6px;cursor:pointer;font-size:12.5px;}
+.action-btn.danger{color:var(--danger);border-color:var(--danger);}
+.muted{color:var(--muted);font-size:13px;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;margin:8px 0;}
+
+/* validation */
+#validation-panel{display:none;position:absolute;top:16px;left:16px;width:320px;max-height:60%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-y:auto;z-index:5;}
+.issue-row{font-size:12.5px;padding:8px;border-radius:6px;margin-bottom:6px;border-left:3px solid var(--border);}
+.issue-row.error{border-left-color:var(--danger);background:rgba(225,72,58,.08);}
+.issue-row.warn{border-left-color:var(--accent);background:rgba(242,163,64,.08);}
+
+/* run panel */
+#run-panel{display:block;}
+#run-status{font-size:13px;padding:10px;background:var(--surface2);border-radius:6px;margin-bottom:10px;}
+.run-controls{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.run-controls button{flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--ink);padding:8px;border-radius:6px;cursor:pointer;font-size:12.5px;}
+.run-controls button:disabled{opacity:.4;}
+#speed-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:12px;}
+#speed-slider{flex:1;}
+#run-choices{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.choice-btn{background:rgba(242,163,64,.12);border:1px solid var(--accent);color:var(--ink);padding:8px;border-radius:6px;cursor:pointer;font-size:12.5px;text-align:left;}
+#run-log{max-height:220px;overflow-y:auto;font-family:var(--font-mono);font-size:11.5px;background:var(--surface2);border-radius:6px;padding:8px;margin-top:8px;}
+.log-row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid var(--border);}
+.log-idx{color:var(--muted2);width:18px;flex-shrink:0;}
+.log-label{flex:1;color:var(--ink);}
+.log-time{color:var(--accent);flex-shrink:0;}
+
+/* toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:all .25s;z-index:20;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* modal */
+#modal-backdrop,#notice-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:30;}
+#modal-backdrop.show,#notice-modal-backdrop.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:520px;max-width:92vw;padding:20px;}
+.notice-modal{width:360px;}
+#notice-modal-svg-wrap{background:#fff;border-radius:8px;padding:8px;}
+#notice-modal-svg-wrap svg{width:100%;height:auto;display:block;}
+.modal h2{font-size:16px;margin-bottom:12px;}
+#import-textarea{width:100%;height:180px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--font-mono);font-size:12px;margin-bottom:10px;}
+#import-error{color:var(--danger);font-size:12px;min-height:16px;margin-bottom:10px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.modal-actions button{background:var(--surface2);border:1px solid var(--border);color:var(--ink);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;}
+.modal-actions button.primary{background:var(--accent);color:#1B140A;border-color:var(--accent);font-weight:600;}
+
+/* print */
+#print-view{display:none;}
+@media print{
+  #app > *:not(#print-view){display:none !important;}
+  #print-view{display:block;background:#fff;color:#111;padding:20px;}
+  #print-view h1{font-size:22px;color:#111;}
+  #print-view h2{font-size:15px;margin-top:18px;border-bottom:1px solid #ccc;padding-bottom:4px;color:#111;}
+  #print-view .print-meta{color:#555;font-size:12px;margin-bottom:14px;}
+  #print-view ol{font-size:12px;line-height:1.6;}
+  #print-view .print-diagram svg{width:100%;height:auto;max-width:100%;}
+  #print-view .print-rules{font-size:11.5px;}
+  #print-view .rule-kind{text-transform:uppercase;font-weight:700;font-size:9px;color:#555;}
+}
+
+/* focus visibility */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .node:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px;
+}
+
+/* responsive: inspector becomes bottom sheet */
+@media (max-width: 880px){
+  #main{flex-direction:column;}
+  #left-panel{width:100%;height:auto;max-height:120px;order:2;}
+  #right-panel{width:100%;order:3;max-height:42vh;border-left:none;border-top:1px solid var(--border);}
+  #canvas-viewport{order:1;min-height:38vh;}
+  #toolbar .title{display:none;}
+  #search-input{width:110px;}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .token{transition:none;}
+  .token .flame{animation:none;}
+}
+
+</style>
+<script id="export-style" type="text/plain">
+.lane-band{opacity:.5;}
+.lane-label{font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.06em;}
+.node-shape{stroke-width:1.4;}
+.node-label{fill:#E7EAEE;font-size:12.5px;font-family:'Inter',sans-serif;}
+.node-sla{fill:#5B6472;font-size:10px;font-family:'JetBrains Mono',monospace;}
+.edge-path{fill:none;stroke:#5B6472;stroke-width:1.6;}
+.edge-label{fill:#8A93A0;font-size:10.5px;font-family:'JetBrains Mono',monospace;text-anchor:middle;}
+</script>
+</head>
+<body>
+<div id="app">
+
+  <div id="toolbar">
+    <span class="title">FIRE EMERGENCY — LIVE PROCESS FLOW</span>
+    <div class="mode-toggle">
+      <button id="mode-build" class="active">Build</button>
+      <button id="mode-run">Run</button>
+    </div>
+    <div class="divider"></div>
+
+    <div id="build-toolbar" class="toolbar-group">
+      <button class="tbtn" id="undo-btn" aria-label="Undo">↺ Undo</button>
+      <button class="tbtn" id="redo-btn" aria-label="Redo">↻ Redo</button>
+      <div class="divider"></div>
+      <button class="tbtn" id="add-task-btn">+ Step</button>
+      <button class="tbtn" id="add-decision-btn">+ Decision</button>
+      <button class="tbtn" id="connect-btn">⤳ Connect</button>
+      <button class="tbtn" id="autolayout-btn">Auto-layout</button>
+      <div class="divider"></div>
+      <button class="tbtn" id="validate-btn">Validate <span id="validation-count"></span></button>
+    </div>
+
+    <div id="run-toolbar" class="toolbar-group" style="display:none;">
+      <span class="muted" style="font-size:12px;">Run mode — pick a path or flip variables on the right</span>
+    </div>
+
+    <div class="spacer"></div>
+    <input id="search-input" type="text" placeholder="Search steps…" aria-label="Search steps">
+    <div class="divider"></div>
+    <button class="tbtn" id="coverage-btn" title="Show which nodes/edges have never been reached across runs">◎ Coverage</button>
+    <button class="tbtn" id="reset-coverage-btn" title="Clear coverage history">Clear coverage</button>
+    <div class="divider"></div>
+    <button class="tbtn" id="import-btn">Import JSON</button>
+    <button class="tbtn" id="export-json-btn">Export JSON</button>
+    <button class="tbtn" id="copy-json-btn">Copy JSON</button>
+    <button class="tbtn" id="export-svg-btn">Export SVG</button>
+    <button class="tbtn" id="export-png-btn">Export PNG</button>
+    <button class="tbtn" id="print-btn">Print SOP</button>
+  </div>
+
+  <div id="main">
+    <div id="left-panel">
+      <div class="panel-title">Swimlanes</div>
+      <div id="lanes-list"></div>
+    </div>
+
+    <div id="canvas-viewport">
+      <div id="canvas-inner">
+        <svg id="canvas-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="run-token-layer"></div>
+
+      <div id="validation-panel">
+        <div class="panel-title">Validation</div>
+        <div id="validation-list"></div>
+      </div>
+
+      <div id="zoom-controls">
+        <button id="zoom-in-btn" aria-label="Zoom in">+</button>
+        <button id="zoom-out-btn" aria-label="Zoom out">−</button>
+        <button id="fit-btn" aria-label="Fit to screen" style="font-size:11px;">Fit</button>
+      </div>
+
+      <div id="minimap">
+        <svg id="minimap-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <div id="right-panel">
+      <div id="inspector-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="panel-title">Inspector</div>
+          <button class="icon-btn" id="inspector-close" aria-label="Deselect">✕</button>
+        </div>
+        <div id="inspector-content"></div>
+
+        <div id="run-panel">
+          <div class="panel-title" style="margin-top:16px;">Run</div>
+          <div id="run-status"></div>
+          <div class="run-controls">
+            <button id="start-run-btn">Start run</button>
+            <button id="step-btn">Step ▸</button>
+            <button id="autoplay-btn">Autoplay</button>
+            <button id="reset-run-btn">Reset</button>
+          </div>
+          <button id="auto-narrate-btn" style="width:100%;background:var(--accent);color:#1B140A;border:none;padding:10px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:10px;">▶ Run automatically, with narration</button>
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-bottom:10px;">
+            <input type="checkbox" id="narrate-toggle" checked> Narrate each step aloud
+          </label>
+          <div id="speed-row">
+            <span>Speed</span>
+            <input type="range" id="speed-slider" min="1" max="100" value="50">
+          </div>
+          <div id="run-choices"></div>
+          <button class="add-btn" id="export-log-btn" style="margin-top:2px;">Export run log</button>
+          <div id="run-log"></div>
+        </div>
+
+        <div id="variables-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+            <div class="panel-title" style="margin:0;">Variables</div>
+          </div>
+          <div id="variables-list"></div>
+          <button class="add-btn" id="add-variable-btn">+ Variable</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="modal-backdrop">
+    <div class="modal">
+      <h2>Import process JSON</h2>
+      <p class="muted" style="margin-bottom:10px;">Paste JSON below, or choose a file. This replaces the current process.</p>
+      <input type="file" id="import-file" accept="application/json">
+      <textarea id="import-textarea" placeholder="Paste process JSON here…" style="margin-top:10px;"></textarea>
+      <div id="import-error"></div>
+      <div class="modal-actions">
+        <button id="modal-close">Cancel</button>
+        <button id="import-load-btn" class="primary">Load process</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notice-modal-backdrop">
+    <div class="modal notice-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 id="notice-modal-title" style="margin:0;">Notice</h2>
+        <button class="icon-btn" id="notice-modal-close" aria-label="Close">✕</button>
+      </div>
+      <div id="notice-modal-svg-wrap"></div>
+      <div class="modal-actions" style="margin-top:14px;">
+        <button id="notice-download-svg-btn">Download SVG</button>
+        <button id="notice-download-png-btn">Download PNG</button>
+        <button id="notice-print-btn" class="primary">Print</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="print-view"></div>
+</div>
+
+<script>
+const DEFAULT_DATA = (function(){
+
+function n(id, role, type, label, detail, fields, rules, sla, comments){
+  return { id, type, role, label, detail: detail||"", fields: fields||[], rules: rules||[], sla: sla||"", comments: comments||[], x:0, y:0 };
+}
+function e(from, to, label, condition){
+  return { id: "e_"+from+"_"+to, from, to, label: label||"", condition: condition||null };
+}
+function cond(variable, op, value){ return { variable, op, value }; }
+
+const roles = [
+  { id:"detect",   label:"1. Detection & alarm",   color:"#E8A33D" },
+  { id:"response", label:"2. Alarm response",       color:"#35B4C4" },
+  { id:"dept",     label:"3. Department actions",   color:"#8E7CD8" },
+  { id:"evac",     label:"4. Evacuation",           color:"#E4573F" },
+  { id:"assembly", label:"5. Assembly arrival",     color:"#3FAE7A" },
+  { id:"rollcall", label:"6. Roll call",            color:"#D9B23C" },
+  { id:"liaison",  label:"7. Liaison with F&R",     color:"#4C7FC0" },
+  { id:"holdclear",label:"8. Hold & all-clear",     color:"#4FC9A6" },
+];
+
+const variables = [
+  { id:"fire_team_can_intervene", label:"Trained responder present and fire is incipient, non-hazmat?", type:"boolean", value:false },
+  { id:"fire_extinguished",       label:"Fire extinguished by fire team?",                              type:"boolean", value:false },
+  { id:"wind_toward_assembly",    label:"Smoke or vapour drifting toward assembly point?",              type:"boolean", value:false },
+  { id:"everyone_accounted_for",  label:"Everyone accounted for at roll call?",                         type:"boolean", value:true },
+  { id:"all_clear_given",         label:"All-clear given by fire and rescue service?",                  type:"boolean", value:true },
+];
+
+const nodes = [
+  n("n1","detect","start","Fire detected","Automatic detection or a person discovering smoke, flame or a strong smell of a flammable substance.",[],[],""),
+  n("n2","detect","task","Raise the alarm","Operate the nearest manual call point immediately and shout to alert others nearby.",
+    [{label:"Who",value:"Person who discovers the fire"}],
+    [{kind:"rule",text:"Raise the alarm before trying to find a supervisor."}],"Immediate"),
+  n("n3","detect","decision","Trained responder & incipient, non-hazmat fire?","Only a trained Fire Team member may consider intervening, and only on a small, contained, non-hazardous fire.",[],
+    [{kind:"warning",text:"Never attempt to fight a fire involving flammable liquids, gases or bulk hazardous product."}],""),
+  n("n4","detect","task","Attempt extinguisher","Fire Team member uses the nearest appropriate extinguisher, only if it is safe to do so.",[],
+    [{kind:"tip",text:"If in doubt, stop and evacuate instead."}],"2 minutes"),
+  n("n5","detect","decision","Fire out?","Confirm whether the extinguisher attempt succeeded.",[],[],""),
+  n("n6","detect","task","Notify security","Call or radio Security with the exact location and nature of the fire, even if the alarm is already sounding.",[],[],"Immediate"),
+
+  n("n7","response","task","Security confirms and escalates","Security checks the fire panel and calls the fire and rescue service without delay.",
+    [{label:"System",value:"Fire panel + direct line"}],
+    [{kind:"rule",text:"This call is never delayed to first verify the alarm is genuine."}],"1 minute"),
+  n("n8","response","task","Security opens all emergency exits","Electronic access-control locking on all emergency exits is released or overridden.",[],[],"1 minute"),
+  n("n9","response","task","All personnel stop work","Machinery, forklifts and equipment are brought to a safe stop.",[],[],"Immediate"),
+  n("n10","response","task","Fire wardens take charge","Each department fire warden puts on their hi-vis vest and takes visible control of evacuation.",[],[],"Immediate"),
+
+  n("n11","dept","subprocess","Department-specific actions","Each department runs its own immediate actions in parallel, in addition to evacuating. This subprocess covers all seven departments at once \u2014 open it to see each one.",
+    [
+      {label:"Administration", value:"Save no documents. Close, do not lock, doors. Go."},
+      {label:"Finance", value:"Never delay for cash, cheques or files."},
+      {label:"Warehouse", value:"Stop equipment, remove keys, close fire doors. Do not move drums or cylinders."},
+      {label:"Distribution", value:"Stop loading. Move trucks only if safe, else leave keys and walk out."},
+      {label:"Cleaning staff", value:"Switch off equipment. Check ablutions and storerooms for others."},
+      {label:"Security (control room)", value:"Continue alarm/access-control tasks; operator leaves last."},
+      {label:"Customer service centre", value:"Stop serving. Direct visitors out ahead of staff."}
+    ],
+    [{kind:"tip",text:"These seven run in parallel across departments, not in sequence \u2014 shown here as one step so the simulation can move through it as a single point in time."}],
+    "1\u20132 minutes"),
+
+  n("n18","evac","task","Leave by the nearest exit","Use the nearest available fire exit, not necessarily your usual route.",[],[],"2 minutes"),
+  n("n19","evac","task","Do not use lifts","Stairwells only, under all circumstances.",[],[],""),
+  n("n20","evac","task","Move calmly, assist others","Walk, do not run. Buddies execute PEEPs for colleagues needing evacuation assistance.",[],[],"1 minute"),
+  n("n21","evac","task","Close doors behind you","Where it costs no time, close (do not lock) doors as you pass through.",[],[],""),
+  n("n22","evac","task","Leave personal belongings","No one stops to collect bags, laptops or files.",[],[],""),
+  n("n23","evac","task","Wardens sweep their areas","Each warden checks offices, ablutions and storerooms are empty, then leaves last.",[],[],"3 minutes"),
+  n("n24","evac","task","No one re-enters","Nobody goes back in for any reason until the all-clear is given.",[],
+    [{kind:"rule",text:"Anyone believed still inside is reported immediately, not searched for."}],""),
+
+  n("n25","assembly","task","Go to designated assembly point","Each department proceeds to its own pre-assigned point, not the nearest convenient spot.",[],[],"3 minutes"),
+  n("n26","assembly","task","Keep access roads clear","Stay clear of the fire access road and the gate.",[],[],""),
+  n("n27","assembly","decision","Smoke drifting toward assembly point?","Check wind direction relative to the assembly point.",[],[],""),
+  n("n28","assembly","task","Move to secondary assembly point","Redirect the group to the upwind secondary point and inform the chief fire warden.",[],[],"2 minutes"),
+
+  n("n29","rollcall","task","Department headcount","Each fire warden counts their own staff against their headcount sheet.",[],[],"3 minutes"),
+  n("n30","rollcall","task","Report to assembly point marshal","Wardens report totals present and any names missing, with last known location.",[],[],"1 minute"),
+  n("n31","rollcall","task","Security reconciles visitors","The visitor and contractor register is checked against who is confirmed present.",[],[],"2 minutes"),
+  n("n32","rollcall","task","Marshal consolidates","Each marshal combines department headcounts into one figure for their point.",[],[],"1 minute"),
+  n("n33","rollcall","decision","Everyone accounted for?","Chief fire warden reviews the consolidated headcount from every assembly point.",[],[],""),
+  n("n34","rollcall","task","Escalate missing person","Name and last known location are passed to the fire and rescue service immediately.",[],
+    [{kind:"warning",text:"No one re-enters the building to search for a missing colleague."}],"Immediate"),
+  n("n35","rollcall","task","Chief fire warden confirms accountability","The site is logged as fully accounted for, with a timestamp, for the incident log.",[],[],""),
+
+  n("n36","liaison","task","Meet and brief the crew","Hand over the fire location, hazardous substances register, site plans and headcount status.",[],[],"2 minutes"),
+  n("n37","liaison","task","Provide continuous updates","Any change in headcount or a located missing person is passed to the on-scene commander.",[],[],""),
+  n("n38","liaison","task","Follow their instructions","The fire and rescue service assumes command; all personnel follow their lead.",[],[],""),
+
+  n("n39","holdclear","task","Remain at the assembly point","Stay in place, do not attempt to retrieve vehicles from cordoned areas.",[],[],""),
+  n("n40","holdclear","task","Weather and welfare care","Shelter, water and welfare support are arranged without compromising the clear zone.",[],[],""),
+  n("n41","holdclear","decision","All-clear given?","Only the fire and rescue service, or the chief fire warden once formally advised, may declare it.",[],[],""),
+  n("n42","holdclear","task","Phased re-entry","Fire wardens lead their departments back in, department by department, re-checking headcounts.",[],[],"5 minutes"),
+  n("n43","holdclear","task","Stand-down communication","The incident is confirmed closed; the alarm panel is reset only by a competent, authorised person.",[],[],"2 minutes"),
+  n("n44","holdclear","end","Incident closed","Full site accountability confirmed and the emergency stood down.",[],[],""),
+];
+
+const edges = [
+  e("n1","n2"),
+  e("n2","n3"),
+  e("n3","n4","Yes",cond("fire_team_can_intervene","is",true)),
+  e("n3","n6","No",cond("fire_team_can_intervene","is",false)),
+  e("n4","n5"),
+  e("n5","n6","Fire out",cond("fire_extinguished","is",true)),
+  e("n5","n6","Not out",cond("fire_extinguished","is",false)),
+  e("n6","n7"),
+
+  e("n7","n8"), e("n8","n9"), e("n9","n10"),
+
+  e("n10","n11"), e("n11","n18"),
+
+  e("n18","n19"), e("n19","n20"), e("n20","n21"), e("n21","n22"),
+  e("n22","n23"), e("n23","n24"), e("n24","n25"),
+
+  e("n25","n26"), e("n26","n27"),
+  e("n27","n28","Yes",cond("wind_toward_assembly","is",true)),
+  e("n27","n29","No",cond("wind_toward_assembly","is",false)),
+  e("n28","n29"),
+
+  e("n29","n30"), e("n30","n31"), e("n31","n32"), e("n32","n33"),
+  e("n33","n35","Yes",cond("everyone_accounted_for","is",true)),
+  e("n33","n34","No",cond("everyone_accounted_for","is",false)),
+  e("n34","n29","Re-check"),
+  e("n35","n36"),
+
+  e("n36","n37"), e("n37","n38"), e("n38","n39"),
+
+  e("n39","n40"), e("n40","n41"),
+  e("n41","n42","Yes",cond("all_clear_given","is",true)),
+  e("n41","n39","No, keep waiting",cond("all_clear_given","is",false)),
+  e("n42","n43"), e("n43","n44"),
+];
+
+nodes.find(x=>x.id==="n19").notice = "no_lift";
+
+return {
+  meta: { title:"Fire emergency evacuation process", owner:"Risk Manager", version:1 },
+  roles, variables, nodes, edges
+};
+})();
+
+</script>
+<script>
+(function(){
+"use strict";
+
+const NOTICES = {
+  no_lift: {
+    title: "Do Not Use Lift \u2014 In Case of Fire",
+    svg: `<svg viewBox="0 0 400 560" xmlns="http://www.w3.org/2000/svg" font-family="'Oswald', Arial, sans-serif">
+<rect x="4" y="4" width="392" height="552" rx="14" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+<circle cx="200" cy="175" r="112" fill="#ffffff" stroke="#D0021B" stroke-width="24"/>
+<rect x="158" y="130" width="84" height="96" rx="4" fill="none" stroke="#111111" stroke-width="7"/>
+<line x1="200" y1="130" x2="200" y2="226" stroke="#111111" stroke-width="5"/>
+<line x1="200" y1="95" x2="200" y2="122" stroke="#111111" stroke-width="7" stroke-linecap="round"/>
+<polygon points="200,88 190,104 210,104" fill="#111111"/>
+<polygon points="200,129 190,113 210,113" fill="#111111"/>
+<line x1="124" y1="251" x2="276" y2="99" stroke="#D0021B" stroke-width="24" stroke-linecap="round"/>
+<text x="200" y="322" text-anchor="middle" font-size="34" font-weight="700" fill="#111111" letter-spacing="1">DO NOT USE LIFT</text>
+<text x="200" y="358" text-anchor="middle" font-size="26" font-weight="600" fill="#D0021B" letter-spacing="1">IN CASE OF FIRE</text>
+<line x1="40" y1="388" x2="360" y2="388" stroke="#dddddd" stroke-width="2"/>
+<rect x="60" y="404" width="280" height="112" rx="10" fill="#1C8A3D"/>
+<polygon points="90,486 90,466 120,466 120,446 150,446 150,426 180,426 180,486" fill="#ffffff"/>
+<text x="260" y="450" text-anchor="middle" font-size="26" font-weight="700" fill="#ffffff" letter-spacing="1">USE</text>
+<text x="260" y="482" text-anchor="middle" font-size="26" font-weight="700" fill="#ffffff" letter-spacing="1">STAIRS</text>
+<text x="200" y="540" text-anchor="middle" font-size="13" fill="#666666" font-family="'Inter', sans-serif">Proceed calmly to the nearest stairwell and evacuate on foot.</text>
+</svg>`
+  }
+};
+
+const TYPE_DIMS = {
+  start:{w:170,h:56}, end:{w:170,h:56}, task:{w:210,h:68},
+  decision:{w:160,h:120}, subprocess:{w:210,h:74}, wait:{w:190,h:68}
+};
+const OP_LABEL = { is:"=", not:"\u2260", ">":">", "<":"<", ">=":"\u2265", "<=":"\u2264", contains:"contains" };
+
+const LS_KEY = "fireflow_state_v1";
+let DATA = null;
+let state = {
+  mode: "build",
+  selected: null,
+  connectFrom: null,
+  connecting: false,
+  pan: { x: 80, y: 40 },
+  zoom: 1,
+  drag: null,
+  search: "",
+  hiddenRoles: new Set(),
+  showValidation: false,
+  showCoverage: false,
+  dirty: false,
+};
+let run = null;
+let coverage = { nodes: new Set(), edges: new Set() };
+let history = [];
+let historyIndex = -1;
+let autoplayTimer = null;
+let autoplayActive = false;
+let narrateEnabled = true;
+
+// ---------- persistence ----------
+function saveLocal(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({DATA, coverage:{nodes:[...coverage.nodes], edges:[...coverage.edges]}}));
+    state.dirty = false;
+  }catch(e){ /* storage unavailable, silently continue */ }
+}
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    if(!parsed.DATA || !parsed.DATA.nodes) return false;
+    DATA = parsed.DATA;
+    if(parsed.coverage){
+      coverage.nodes = new Set(parsed.coverage.nodes||[]);
+      coverage.edges = new Set(parsed.coverage.edges||[]);
+    }
+    return true;
+  }catch(e){ return false; }
+}
+
+// ---------- history (undo/redo) ----------
+function pushHistory(){
+  const snap = JSON.stringify(DATA);
+  history = history.slice(0, historyIndex+1);
+  history.push(snap);
+  if(history.length > 100) history.shift();
+  historyIndex = history.length - 1;
+  state.dirty = true;
+  saveLocal();
+}
+function undo(){
+  if(historyIndex <= 0) return;
+  historyIndex--;
+  DATA = JSON.parse(history[historyIndex]);
+  render();
+  saveLocal();
+}
+function redo(){
+  if(historyIndex >= history.length-1) return;
+  historyIndex++;
+  DATA = JSON.parse(history[historyIndex]);
+  render();
+  saveLocal();
+}
+
+// ---------- layout ----------
+function autoLayout(){
+  const colSpacing = 260, laneHeight = 190, startX = 170, startY = 110;
+  DATA.roles.forEach((role, laneIdx)=>{
+    const laneNodes = DATA.nodes.filter(nd=>nd.role===role.id);
+    laneNodes.forEach((nd, i)=>{
+      nd.x = startX + i*colSpacing;
+      nd.y = startY + laneIdx*laneHeight;
+    });
+  });
+}
+function canvasBounds(){
+  let maxX=800, maxY=600;
+  DATA.nodes.forEach(nd=>{
+    const dim = TYPE_DIMS[nd.type]||TYPE_DIMS.task;
+    maxX = Math.max(maxX, nd.x + dim.w/2 + 120);
+    maxY = Math.max(maxY, nd.y + dim.h/2 + 120);
+  });
+  return { w:maxX, h:maxY };
+}
+
+// ---------- geometry ----------
+function nodesById(){
+  const m = {};
+  DATA.nodes.forEach(nd=>m[nd.id]=nd);
+  return m;
+}
+function edgePath(edge, byId){
+  const s = byId[edge.from], t = byId[edge.to];
+  if(!s || !t) return null;
+  const sd = TYPE_DIMS[s.type]||TYPE_DIMS.task, td = TYPE_DIMS[t.type]||TYPE_DIMS.task;
+  const dx = t.x - s.x, dy = t.y - s.y;
+  let path, sx, sy, tx, ty;
+  if(Math.abs(dy) < 40 && dx < 0){
+    sx = s.x; sy = s.y + sd.h/2; tx = t.x; ty = t.y + td.h/2;
+    const dip = 95;
+    path = `M ${sx} ${sy} C ${sx} ${sy+dip}, ${tx} ${ty+dip}, ${tx} ${ty}`;
+  } else if(Math.abs(dy) >= 40){
+    sx = s.x; sy = dy>0 ? s.y + sd.h/2 : s.y - sd.h/2;
+    tx = t.x; ty = dy>0 ? t.y - td.h/2 : t.y + td.h/2;
+    const midY = (sy+ty)/2;
+    path = `M ${sx} ${sy} C ${sx} ${midY}, ${tx} ${midY}, ${tx} ${ty}`;
+  } else {
+    sx = s.x + sd.w/2; sy = s.y; tx = t.x - td.w/2; ty = t.y;
+    const midX = (sx+tx)/2;
+    path = `M ${sx} ${sy} C ${midX} ${sy}, ${midX} ${ty}, ${tx} ${ty}`;
+  }
+  return { path, labelX:(sx+tx)/2, labelY:(sy+ty)/2 - 6 };
+}
+function wrapText(text, maxChars){
+  const words = String(text).split(" ");
+  const lines = []; let cur = "";
+  words.forEach(w=>{
+    if((cur+" "+w).trim().length > maxChars){ lines.push(cur.trim()); cur = w; }
+    else cur = (cur+" "+w).trim();
+  });
+  if(cur) lines.push(cur);
+  return lines.slice(0,3);
+}
+
+// ---------- SVG helpers ----------
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(tag, attrs){
+  const el = document.createElementNS(SVGNS, tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+// ---------- render ----------
+function render(){
+  renderCanvas();
+  renderToolbarState();
+  renderLanesPanel();
+  renderVariablesPanel();
+  renderInspector();
+  renderValidationPanel();
+  renderRunPanel();
+  renderMinimap();
+  applyPanZoom();
+}
+
+function renderToolbarState(){
+  document.getElementById("mode-build").classList.toggle("active", state.mode==="build");
+  document.getElementById("mode-run").classList.toggle("active", state.mode==="run");
+  document.getElementById("build-toolbar").style.display = state.mode==="build" ? "flex" : "none";
+  document.getElementById("run-toolbar").style.display = state.mode==="run" ? "flex" : "none";
+  document.getElementById("undo-btn").disabled = historyIndex <= 0;
+  document.getElementById("redo-btn").disabled = historyIndex >= history.length-1;
+  document.getElementById("connect-btn").classList.toggle("active", state.connecting);
+  document.getElementById("coverage-btn").classList.toggle("active", state.showCoverage);
+  document.getElementById("app").classList.toggle("run-mode", state.mode==="run");
+}
+
+function roleColor(roleId){
+  const r = DATA.roles.find(x=>x.id===roleId);
+  return r ? r.color : "#8A93A0";
+}
+
+function renderCanvas(){
+  const svg = document.getElementById("canvas-svg");
+  svg.innerHTML = "";
+  const bounds = canvasBounds();
+  svg.setAttribute("width", bounds.w);
+  svg.setAttribute("height", bounds.h);
+
+  const defs = svgEl("defs", {});
+  const marker = svgEl("marker", {id:"arrowhead", viewBox:"0 0 10 10", refX:"8", refY:"5", markerWidth:"7", markerHeight:"7", orient:"auto-start-reverse"});
+  marker.appendChild(svgEl("path", {d:"M1 1L9 5L1 9", fill:"none", stroke:"context-stroke", "stroke-width":"1.6", "stroke-linecap":"round", "stroke-linejoin":"round"}));
+  defs.appendChild(marker);
+  svg.appendChild(defs);
+
+  // lane bands
+  DATA.roles.forEach((role, i)=>{
+    if(state.hiddenRoles.has(role.id)) return;
+    const y = 110 + i*190 - 70;
+    const band = svgEl("rect", {x:0, y:y, width:bounds.w, height:190, class:"lane-band"});
+    band.style.fill = i%2===0 ? "var(--lane-a)" : "var(--lane-b)";
+    svg.appendChild(band);
+    const label = svgEl("text", {x:24, y:y+26, class:"lane-label"});
+    label.style.fill = role.color;
+    label.textContent = role.label;
+    svg.appendChild(label);
+  });
+
+  const byId = nodesById();
+  const g_edges = svgEl("g", {class:"edges-layer"});
+  const g_nodes = svgEl("g", {class:"nodes-layer"});
+
+  DATA.edges.forEach(edge=>{
+    const s = byId[edge.from], t = byId[edge.to];
+    if(!s || !t) return;
+    if(state.hiddenRoles.has(s.role) || state.hiddenRoles.has(t.role)) return;
+    const geo = edgePath(edge, byId);
+    if(!geo) return;
+    const visited = coverage.nodes.size && run ? run.visitedEdgeIds.has(edge.id) : false;
+    const everVisited = coverage.edges.has(edge.id);
+    const dimmed = run && !run.visitedEdgeIds.has(edge.id);
+    const neverCovered = state.showCoverage && !everVisited;
+
+    const hit = svgEl("path", {d:geo.path, class:"edge-hit", "data-edge":edge.id});
+    g_edges.appendChild(hit);
+
+    const p = svgEl("path", {d:geo.path, class:"edge-path", "marker-end":"url(#arrowhead)", "data-edge":edge.id});
+    if(edge.condition){
+      const varDef = DATA.variables.find(v=>v.id===edge.condition.variable);
+      p.classList.add(edge.condition.value === true || edge.condition.value === "true" ? "edge-yes" : "edge-no");
+    }
+    if(run && run.visitedEdgeIds.has(edge.id)) p.classList.add("edge-visited");
+    else if(run) p.classList.add("edge-dim");
+    if(neverCovered) p.classList.add("edge-nevercovered");
+    if(state.selected && state.selected.type==="edge" && state.selected.id===edge.id) p.classList.add("edge-selected");
+    g_edges.appendChild(p);
+
+    if(edge.label){
+      const lbl = svgEl("text", {x:geo.labelX, y:geo.labelY, class:"edge-label", "data-edge":edge.id});
+      lbl.textContent = edge.label;
+      g_edges.appendChild(lbl);
+    }
+  });
+
+  DATA.nodes.forEach(nd=>{
+    if(state.hiddenRoles.has(nd.role)) return;
+    const dim = TYPE_DIMS[nd.type]||TYPE_DIMS.task;
+    const grp = svgEl("g", {class:"node type-"+nd.type, "data-node":nd.id, transform:`translate(${nd.x},${nd.y})`});
+    const color = roleColor(nd.role);
+
+    let shape;
+    if(nd.type==="start" || nd.type==="end"){
+      shape = svgEl("rect", {x:-dim.w/2, y:-dim.h/2, width:dim.w, height:dim.h, rx:dim.h/2});
+    } else if(nd.type==="decision"){
+      const w=dim.w/2, h=dim.h/2;
+      shape = svgEl("polygon", {points:`0,${-h} ${w},0 0,${h} ${-w},0`});
+    } else if(nd.type==="subprocess"){
+      shape = svgEl("rect", {x:-dim.w/2, y:-dim.h/2, width:dim.w, height:dim.h, rx:8});
+      const inner = svgEl("rect", {x:-dim.w/2+7, y:-dim.h/2+7, width:dim.w-14, height:dim.h-14, rx:5, class:"subprocess-inner"});
+      grp.appendChild(shape);
+      grp.appendChild(inner);
+      shape = null;
+    } else {
+      shape = svgEl("rect", {x:-dim.w/2, y:-dim.h/2, width:dim.w, height:dim.h, rx:10});
+    }
+    if(shape) grp.appendChild(shape);
+
+    grp.querySelectorAll ? null : null;
+    Array.from(grp.children).forEach(c=>{ c.style.setProperty("--role-color", color); c.classList.add("node-shape"); });
+
+    const isSelected = state.selected && state.selected.type==="node" && state.selected.id===nd.id;
+    if(isSelected) grp.classList.add("selected");
+    if(run){
+      if(run.currentNodeId===nd.id) grp.classList.add("current");
+      else if(run.visitedNodeIds.has(nd.id)) grp.classList.add("visited");
+      else grp.classList.add("dim");
+    }
+    if(state.showCoverage && !coverage.nodes.has(nd.id)) grp.classList.add("nevercovered");
+    if(state.search && nd.label.toLowerCase().includes(state.search.toLowerCase())) grp.classList.add("match");
+    if(state.connecting && state.connectFrom===nd.id) grp.classList.add("connect-source");
+
+    const maxChars = nd.type==="decision" ? 16 : 22;
+    const lines = wrapText(nd.label, maxChars);
+    const lineH = 15;
+    const totalH = lines.length*lineH;
+    lines.forEach((line, i)=>{
+      const t = svgEl("text", {x:0, y: -totalH/2 + lineH*i + 11, class:"node-label", "text-anchor":"middle"});
+      t.textContent = line;
+      grp.appendChild(t);
+    });
+    if(nd.sla){
+      const slaT = svgEl("text", {x:0, y: dim.h/2 - 8, class:"node-sla", "text-anchor":"middle"});
+      slaT.textContent = nd.sla;
+      grp.appendChild(slaT);
+    }
+    if(nd.comments && nd.comments.length){
+      const badge = svgEl("circle", {cx:dim.w/2-10, cy:-dim.h/2+10, r:5, class:"comment-badge"});
+      grp.appendChild(badge);
+    }
+    if(nd.notice && NOTICES[nd.notice]){
+      const nb = svgEl("g", {class:"notice-badge", "data-notice":nd.notice, transform:`translate(${-dim.w/2+13},${-dim.h/2+11})`});
+      nb.appendChild(svgEl("circle", {cx:0, cy:0, r:8, fill:"#D0021B", stroke:"#ffffff", "stroke-width":"1.2"}));
+      nb.appendChild(svgEl("text", {x:0, y:1, "text-anchor":"middle", "dominant-baseline":"central", fill:"#ffffff", "font-size":"11", "font-weight":"800", "font-family":"Inter, sans-serif"})).textContent = "!";
+      grp.appendChild(nb);
+    }
+    g_nodes.appendChild(grp);
+  });
+
+  svg.appendChild(g_edges);
+  svg.appendChild(g_nodes);
+
+  if(run){
+    const cur = byId[run.currentNodeId];
+    if(cur){
+      const token = svgEl("g", {class:"token"+(prefersReducedMotion()?" no-anim":""), transform:`translate(${cur.x},${cur.y-46})`, id:"run-token"});
+      token.appendChild(svgEl("path", {d:"M0,-14 C7,-6 8,3 3,9 C5,4 3,1 0,-2 C-3,1 -5,4 -3,9 C-8,3 -7,-6 0,-14 Z", class:"flame"}));
+      svg.appendChild(token);
+    }
+  }
+}
+
+function prefersReducedMotion(){
+  return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function applyPanZoom(){
+  const inner = document.getElementById("canvas-inner");
+  inner.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
+}
+
+function renderLanesPanel(){
+  const el = document.getElementById("lanes-list");
+  el.innerHTML = "";
+  DATA.roles.forEach(role=>{
+    const row = document.createElement("label");
+    row.className = "lane-toggle";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !state.hiddenRoles.has(role.id);
+    cb.addEventListener("change", ()=>{
+      if(cb.checked) state.hiddenRoles.delete(role.id); else state.hiddenRoles.add(role.id);
+      renderCanvas(); renderMinimap();
+    });
+    const sw = document.createElement("span");
+    sw.className = "lane-swatch";
+    sw.style.background = role.color;
+    row.appendChild(cb); row.appendChild(sw);
+    row.appendChild(document.createTextNode(role.label));
+    el.appendChild(row);
+  });
+}
+
+function fmtVal(v, type){
+  if(type==="boolean") return v ? "Yes" : "No";
+  return String(v);
+}
+
+function renameVariableId(oldId, newId){
+  if(!newId || newId===oldId) return oldId;
+  newId = newId.trim().replace(/\s+/g,"_").toLowerCase();
+  if(!newId) return oldId;
+  if(DATA.variables.some(v=>v.id===newId)){ toast("A variable with that key already exists"); return oldId; }
+  DATA.edges.forEach(e=>{ if(e.condition && e.condition.variable===oldId) e.condition.variable = newId; });
+  return newId;
+}
+
+function renderVariablesPanel(){
+  const el = document.getElementById("variables-list");
+  el.innerHTML = "";
+  const buildMode = state.mode==="build";
+
+  DATA.variables.forEach(v=>{
+    const row = document.createElement("div");
+    row.className = "var-row";
+
+    if(buildMode){
+      const idRow = document.createElement("div"); idRow.className = "kv-row";
+      const idInput = input(v.id, (val)=>{ v.id = renameVariableId(v.id, val); pushHistory(); render(); }, "key");
+      idInput.style.fontFamily = "var(--font-mono)"; idInput.style.fontSize = "11px";
+      const typeSel = select(v.type, ["boolean","number","string"], (val)=>{
+        v.type = val;
+        v.value = val==="boolean" ? false : (val==="number" ? 0 : "");
+        pushHistory(); render();
+      });
+      idRow.appendChild(idInput); idRow.appendChild(typeSel);
+      idRow.appendChild(delBtn(()=>{
+        if(!confirm("Delete this variable? Edge conditions referencing it will be flagged by Validate, not removed.")) return;
+        DATA.variables = DATA.variables.filter(x=>x.id!==v.id);
+        pushHistory(); render();
+      }));
+      row.appendChild(idRow);
+      row.appendChild(input(v.label, (val)=>{ v.label=val; pushHistory(); render(); }, "Description shown to reviewers"));
+    } else {
+      const lbl = document.createElement("div");
+      lbl.className = "var-label";
+      lbl.textContent = v.label;
+      row.appendChild(lbl);
+    }
+
+    const ctrl = document.createElement("div");
+    ctrl.className = "var-ctrl";
+    if(v.type==="boolean"){
+      const btn = document.createElement("button");
+      btn.className = "var-toggle "+(v.value?"on":"off");
+      btn.textContent = v.value ? "Yes" : "No";
+      btn.addEventListener("click", ()=>{
+        v.value = !v.value;
+        pushHistory();
+        if(run) tryResumeAfterVarChange();
+        render();
+      });
+      ctrl.appendChild(btn);
+    } else {
+      const inp = document.createElement("input");
+      inp.className = "var-input";
+      inp.value = v.value;
+      inp.addEventListener("change", ()=>{
+        v.value = v.type==="number" ? Number(inp.value) : inp.value;
+        pushHistory();
+        if(run) tryResumeAfterVarChange();
+        render();
+      });
+      ctrl.appendChild(inp);
+    }
+    row.appendChild(ctrl);
+    el.appendChild(row);
+  });
+}
+
+function tryResumeAfterVarChange(){
+  if(run && run.awaitingChoice){
+    const node = nodesById()[run.currentNodeId];
+    const resolved = resolveOutgoing(node);
+    if(resolved.auto){
+      stepRun(autoplayActive ? autoplayContinue : null);
+    }
+  }
+}
+
+// ---------- selection & inspector ----------
+function selectNode(id){ state.selected = {type:"node", id}; render(); }
+function selectEdge(id){ state.selected = {type:"edge", id}; render(); }
+function deselect(){ state.selected = null; render(); }
+
+function renderInspector(){
+  const el = document.getElementById("inspector-content");
+  el.innerHTML = "";
+  if(state.mode==="run"){ el.innerHTML = "<p class='muted'>Switch to build mode to edit nodes and edges.</p>"; return; }
+  if(!state.selected){ el.innerHTML = "<p class='muted'>Select a node or edge to edit it, or use Add step below.</p>"; return; }
+
+  if(state.selected.type==="node"){
+    const nd = DATA.nodes.find(n=>n.id===state.selected.id);
+    if(!nd){ state.selected=null; return; }
+    el.appendChild(field("Label", input(nd.label, v=>{ nd.label=v; commit(); })));
+    el.appendChild(field("Type", select(nd.type, ["start","task","decision","subprocess","wait","end"], v=>{ nd.type=v; commit(); })));
+    el.appendChild(field("Role / lane", select(nd.role, DATA.roles.map(r=>r.id), v=>{ nd.role=v; commit(); }, DATA.roles.map(r=>r.label))));
+    el.appendChild(field("Detail", textarea(nd.detail, v=>{ nd.detail=v; commit(); })));
+    el.appendChild(field("SLA", input(nd.sla, v=>{ nd.sla=v; commit(); })));
+
+    const fieldsWrap = document.createElement("div");
+    fieldsWrap.className = "sub-block";
+    fieldsWrap.innerHTML = "<div class='sub-title'>Custom fields</div>";
+    (nd.fields||[]).forEach((f,i)=>{
+      const row = document.createElement("div"); row.className="kv-row";
+      row.appendChild(input(f.label, v=>{ f.label=v; commit(); }, "Field"));
+      row.appendChild(input(f.value, v=>{ f.value=v; commit(); }, "Value"));
+      row.appendChild(delBtn(()=>{ nd.fields.splice(i,1); commit(); }));
+      fieldsWrap.appendChild(row);
+    });
+    fieldsWrap.appendChild(addBtn("Add field", ()=>{ nd.fields=nd.fields||[]; nd.fields.push({label:"",value:""}); commit(); }));
+    el.appendChild(fieldsWrap);
+
+    const rulesWrap = document.createElement("div");
+    rulesWrap.className = "sub-block";
+    rulesWrap.innerHTML = "<div class='sub-title'>Rules & warnings</div>";
+    (nd.rules||[]).forEach((r,i)=>{
+      const row = document.createElement("div"); row.className="kv-row";
+      row.appendChild(select(r.kind, ["rule","warning","tip"], v=>{ r.kind=v; commit(); }));
+      row.appendChild(input(r.text, v=>{ r.text=v; commit(); }, "Text"));
+      row.appendChild(delBtn(()=>{ nd.rules.splice(i,1); commit(); }));
+      rulesWrap.appendChild(row);
+    });
+    rulesWrap.appendChild(addBtn("Add rule", ()=>{ nd.rules=nd.rules||[]; nd.rules.push({kind:"rule",text:""}); commit(); }));
+    el.appendChild(rulesWrap);
+
+    const commentsWrap = document.createElement("div");
+    commentsWrap.className = "sub-block";
+    commentsWrap.innerHTML = "<div class='sub-title'>Comments</div>";
+    (nd.comments||[]).forEach((c,i)=>{
+      const row = document.createElement("div"); row.className = "comment-row";
+      row.innerHTML = `<div class="comment-text"></div><div class="comment-ts"></div>`;
+      row.querySelector(".comment-text").textContent = c.text;
+      row.querySelector(".comment-ts").textContent = c.ts;
+      row.appendChild(delBtn(()=>{ nd.comments.splice(i,1); commit(); }));
+      commentsWrap.appendChild(row);
+    });
+    const cInput = document.createElement("textarea");
+    cInput.placeholder = "Add a review comment\u2026";
+    cInput.rows = 2;
+    commentsWrap.appendChild(cInput);
+    const cBtn = addBtn("Add comment", ()=>{
+      if(!cInput.value.trim()) return;
+      nd.comments = nd.comments||[];
+      nd.comments.push({text:cInput.value.trim(), ts:new Date().toLocaleString()});
+      commit();
+    });
+    commentsWrap.appendChild(cBtn);
+    el.appendChild(commentsWrap);
+
+    const actions = document.createElement("div");
+    actions.className = "inspector-actions";
+    actions.appendChild(actionBtn("Duplicate", ()=>duplicateNode(nd.id)));
+    actions.appendChild(actionBtn("Delete node", ()=>deleteNode(nd.id), true));
+    el.appendChild(actions);
+  }
+
+  if(state.selected.type==="edge"){
+    const edge = DATA.edges.find(x=>x.id===state.selected.id);
+    if(!edge){ state.selected=null; return; }
+    el.appendChild(field("Label", input(edge.label, v=>{ edge.label=v; commit(); })));
+
+    const hasCond = !!edge.condition;
+    const condToggle = document.createElement("label");
+    condToggle.className = "checkbox-row";
+    const cb = document.createElement("input"); cb.type="checkbox"; cb.checked = hasCond;
+    cb.addEventListener("change", ()=>{
+      edge.condition = cb.checked ? {variable: DATA.variables[0] ? DATA.variables[0].id : "", op:"is", value:true} : null;
+      commit();
+    });
+    condToggle.appendChild(cb);
+    condToggle.appendChild(document.createTextNode(" Has a condition"));
+    el.appendChild(condToggle);
+
+    if(edge.condition){
+      el.appendChild(field("Variable", select(edge.condition.variable, DATA.variables.map(v=>v.id), v=>{ edge.condition.variable=v; commit(); }, DATA.variables.map(v=>v.label))));
+      el.appendChild(field("Operator", select(edge.condition.op, ["is","not",">","<",">=","<=","contains"], v=>{ edge.condition.op=v; commit(); }, ["=","\u2260",">","<","\u2265","\u2264","contains"])));
+      const varDef = DATA.variables.find(v=>v.id===edge.condition.variable);
+      if(varDef && varDef.type==="boolean"){
+        el.appendChild(field("Value", select(String(edge.condition.value), ["true","false"], v=>{ edge.condition.value = v==="true"; commit(); }, ["Yes","No"])));
+      } else {
+        el.appendChild(field("Value", input(edge.condition.value, v=>{ edge.condition.value=v; commit(); })));
+      }
+    }
+    const actions = document.createElement("div");
+    actions.className = "inspector-actions";
+    actions.appendChild(actionBtn("Delete edge", ()=>deleteEdge(edge.id), true));
+    el.appendChild(actions);
+  }
+
+  function commit(){ pushHistory(); render(); }
+}
+
+function field(labelText, control){
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  const lbl = document.createElement("label");
+  lbl.textContent = labelText;
+  wrap.appendChild(lbl);
+  wrap.appendChild(control);
+  return wrap;
+}
+function input(val, onChange, placeholder){
+  const i = document.createElement("input");
+  i.value = val==null ? "" : val;
+  if(placeholder) i.placeholder = placeholder;
+  i.addEventListener("change", ()=>onChange(i.value));
+  return i;
+}
+function textarea(val, onChange){
+  const t = document.createElement("textarea");
+  t.rows = 3;
+  t.value = val==null ? "" : val;
+  t.addEventListener("change", ()=>onChange(t.value));
+  return t;
+}
+function select(val, options, onChange, labels){
+  const s = document.createElement("select");
+  options.forEach((o,i)=>{
+    const opt = document.createElement("option");
+    opt.value = o;
+    opt.textContent = labels ? labels[i] : o;
+    if(o===val) opt.selected = true;
+    s.appendChild(opt);
+  });
+  s.addEventListener("change", ()=>onChange(s.value));
+  return s;
+}
+function delBtn(onClick){
+  const b = document.createElement("button");
+  b.className = "icon-btn danger"; b.type="button"; b.setAttribute("aria-label","Remove");
+  b.textContent = "\u2715";
+  b.addEventListener("click", onClick);
+  return b;
+}
+function addBtn(text, onClick){
+  const b = document.createElement("button");
+  b.className = "add-btn"; b.type="button";
+  b.textContent = "+ "+text;
+  b.addEventListener("click", onClick);
+  return b;
+}
+function actionBtn(text, onClick, danger){
+  const b = document.createElement("button");
+  b.className = "action-btn"+(danger?" danger":"");
+  b.type="button"; b.textContent = text;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
+// ---------- node/edge mutation ----------
+function genId(prefix){
+  let i=1;
+  while(DATA.nodes.find(n=>n.id===prefix+i) || DATA.edges.find(e=>e.id===prefix+i)) i++;
+  return prefix+i;
+}
+function addNode(role, type){
+  const id = genId("n");
+  const bounds = canvasBounds();
+  const nd = { id, type: type||"task", role: role||DATA.roles[0].id, label:"New step",
+    detail:"", fields:[], rules:[], sla:"", comments:[], x: 260, y: 150 };
+  DATA.nodes.push(nd);
+  pushHistory();
+  state.selected = {type:"node", id};
+  render();
+}
+function duplicateNode(id){
+  const nd = DATA.nodes.find(n=>n.id===id);
+  if(!nd) return;
+  const copy = JSON.parse(JSON.stringify(nd));
+  copy.id = genId("n");
+  copy.x += 40; copy.y += 40;
+  copy.label = nd.label + " (copy)";
+  DATA.nodes.push(copy);
+  pushHistory();
+  state.selected = {type:"node", id:copy.id};
+  render();
+}
+function deleteNode(id){
+  if(!confirm("Delete this node and its connected edges?")) return;
+  DATA.nodes = DATA.nodes.filter(n=>n.id!==id);
+  DATA.edges = DATA.edges.filter(e=>e.from!==id && e.to!==id);
+  state.selected = null;
+  pushHistory();
+  render();
+}
+function deleteEdge(id){
+  DATA.edges = DATA.edges.filter(e=>e.id!==id);
+  state.selected = null;
+  pushHistory();
+  render();
+}
+function addEdge(from, to){
+  if(from===to) return;
+  const id = "e_"+from+"_"+to+"_"+genId("x");
+  DATA.edges.push({id, from, to, label:"", condition:null});
+  pushHistory();
+  state.selected = {type:"edge", id};
+  render();
+}
+
+// ---------- validation ----------
+function validate(){
+  const issues = [];
+  const byId = nodesById();
+  const incoming = {}, outgoing = {};
+  DATA.nodes.forEach(n=>{ incoming[n.id]=0; outgoing[n.id]=0; });
+  DATA.edges.forEach(e=>{ if(outgoing[e.from]!=null) outgoing[e.from]++; if(incoming[e.to]!=null) incoming[e.to]++; });
+
+  DATA.nodes.forEach(n=>{
+    if(n.type!=="start" && n.type!=="end" && incoming[n.id]===0 && outgoing[n.id]===0){
+      issues.push({sev:"error", msg:`"${n.label}" is orphaned \u2014 no connections in or out.`, node:n.id});
+    }
+    if(n.type==="decision" && outgoing[n.id] < 2){
+      issues.push({sev:"warn", msg:`Decision "${n.label}" has fewer than two exits.`, node:n.id});
+    }
+    if(n.type==="start" && incoming[n.id] > 0){
+      issues.push({sev:"warn", msg:`Start node "${n.label}" has incoming edges.`, node:n.id});
+    }
+    if(n.type==="end" && outgoing[n.id] > 0){
+      issues.push({sev:"warn", msg:`End node "${n.label}" has outgoing edges.`, node:n.id});
+    }
+  });
+
+  const starts = DATA.nodes.filter(n=>n.type==="start");
+  if(starts.length===0) issues.push({sev:"error", msg:"No start node in the process."});
+  const reachable = new Set();
+  if(starts.length){
+    const queue = [starts[0].id];
+    while(queue.length){
+      const cur = queue.shift();
+      if(reachable.has(cur)) continue;
+      reachable.add(cur);
+      DATA.edges.filter(e=>e.from===cur).forEach(e=>queue.push(e.to));
+    }
+  }
+  DATA.nodes.forEach(n=>{
+    if(!reachable.has(n.id)) issues.push({sev:"error", msg:`"${n.label}" is unreachable from the start node.`, node:n.id});
+  });
+  const endsReachable = DATA.nodes.some(n=>n.type==="end" && reachable.has(n.id));
+  if(!endsReachable) issues.push({sev:"error", msg:"No end node is reachable from the start \u2014 the process never terminates."});
+
+  const varIds = new Set(DATA.variables.map(v=>v.id));
+  DATA.edges.forEach(e=>{
+    if(e.condition && !varIds.has(e.condition.variable)){
+      issues.push({sev:"error", msg:`Edge "${e.label||e.id}" references a deleted variable.`, edge:e.id});
+    }
+  });
+  return issues;
+}
+
+function renderValidationPanel(){
+  const panel = document.getElementById("validation-panel");
+  panel.style.display = state.showValidation ? "block" : "none";
+  if(!state.showValidation) return;
+  const issues = validate();
+  const el = document.getElementById("validation-list");
+  el.innerHTML = "";
+  document.getElementById("validation-count").textContent = issues.length;
+  if(issues.length===0){
+    el.innerHTML = "<p class='muted'>No issues found.</p>";
+    return;
+  }
+  issues.forEach(iss=>{
+    const row = document.createElement("div");
+    row.className = "issue-row "+iss.sev;
+    row.textContent = iss.msg;
+    if(iss.node || iss.edge){
+      row.style.cursor = "pointer";
+      row.addEventListener("click", ()=>{
+        if(iss.node) selectNode(iss.node); else selectEdge(iss.edge);
+        focusOn(iss.node, iss.edge);
+      });
+    }
+    el.appendChild(row);
+  });
+}
+
+function focusOn(nodeId, edgeId){
+  const byId = nodesById();
+  let target = null;
+  if(nodeId) target = byId[nodeId];
+  else if(edgeId){ const e = DATA.edges.find(x=>x.id===edgeId); if(e) target = byId[e.from]; }
+  if(!target) return;
+  const viewport = document.getElementById("canvas-viewport");
+  const rect = viewport.getBoundingClientRect();
+  state.pan.x = rect.width/2 - target.x*state.zoom;
+  state.pan.y = rect.height/2 - target.y*state.zoom;
+  applyPanZoom();
+  renderMinimap();
+}
+
+// ---------- voice narration ----------
+function speak(text, onEnd){
+  if(!narrateEnabled || !("speechSynthesis" in window)){ if(onEnd) onEnd(); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1;
+  u.onend = ()=>{ if(onEnd) onEnd(); };
+  u.onerror = ()=>{ if(onEnd) onEnd(); };
+  window.speechSynthesis.speak(u);
+}
+function narrateNode(node, reason, onEnd){
+  if(!node){ if(onEnd) onEnd(); return; }
+  let text = node.label + ". " + (node.detail || "");
+  if(reason) text += " " + reason;
+  const warn = (node.rules||[]).find(r=>r.kind==="warning");
+  if(warn) text += " Warning: " + warn.text;
+  speak(text.trim(), onEnd);
+}
+function stopSpeech(){
+  if("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+
+// ---------- run engine ----------
+function evalCondition(cond){
+  const v = DATA.variables.find(x=>x.id===cond.variable);
+  if(!v) return false;
+  const a = v.value, b = cond.value;
+  switch(cond.op){
+    case "is": return String(a)===String(b) || a===b;
+    case "not": return String(a)!==String(b) && a!==b;
+    case ">": return Number(a) > Number(b);
+    case "<": return Number(a) < Number(b);
+    case ">=": return Number(a) >= Number(b);
+    case "<=": return Number(a) <= Number(b);
+    case "contains": return String(a).toLowerCase().includes(String(b).toLowerCase());
+    default: return false;
+  }
+}
+function slaMinutes(sla){
+  if(!sla) return 0;
+  const m = String(sla).match(/(\d+)\s*(hour|minute|min)/i);
+  if(!m) return 0;
+  const num = parseInt(m[1],10);
+  return /hour/i.test(m[2]) ? num*60 : num;
+}
+function resolveOutgoing(node){
+  const outs = DATA.edges.filter(e=>e.from===node.id);
+  if(outs.length===0) return {auto:false, edges:[]};
+  const conditioned = outs.filter(e=>e.condition);
+  const unconditioned = outs.filter(e=>!e.condition);
+  if(conditioned.length===0){
+    if(unconditioned.length===1) return {auto:true, edge:unconditioned[0], reason:""};
+    return {auto:false, edges:outs};
+  }
+  const matches = conditioned.filter(e=>evalCondition(e.condition));
+  if(matches.length===1){
+    const v = DATA.variables.find(x=>x.id===matches[0].condition.variable);
+    const reason = `${v?v.label:matches[0].condition.variable} ${OP_LABEL[matches[0].condition.op]} ${fmtVal(matches[0].condition.value, v?v.type:"boolean")} \u2192 ${matches[0].label||"next step"}`;
+    return {auto:true, edge:matches[0], reason};
+  }
+  if(matches.length===0 && unconditioned.length===1){
+    return {auto:true, edge:unconditioned[0], reason:"Default path"};
+  }
+  return {auto:false, edges:outs};
+}
+function startRun(onSpokenEnd){
+  const start = DATA.nodes.find(n=>n.type==="start");
+  run = {
+    currentNodeId: start ? start.id : (DATA.nodes[0] && DATA.nodes[0].id),
+    visitedNodeIds: new Set(),
+    visitedEdgeIds: new Set(),
+    log: [],
+    elapsed: 0,
+    finished: false,
+    awaitingChoice: false,
+    choiceEdges: [],
+  };
+  if(run.currentNodeId){
+    run.visitedNodeIds.add(run.currentNodeId);
+    coverage.nodes.add(run.currentNodeId);
+    const nd = DATA.nodes.find(n=>n.id===run.currentNodeId);
+    run.log.push({label: nd.label, reason:"Process started", elapsed:0});
+  }
+  saveLocal();
+  render();
+  const byId = nodesById();
+  narrateNode(byId[run.currentNodeId], "Process started.", onSpokenEnd);
+}
+function stepRun(onSpokenEnd){
+  if(!run || run.finished){ if(onSpokenEnd) onSpokenEnd(); return; }
+  const byId = nodesById();
+  const node = byId[run.currentNodeId];
+  if(!node){ if(onSpokenEnd) onSpokenEnd(); return; }
+  if(node.type==="end"){ run.finished = true; render(); if(onSpokenEnd) onSpokenEnd(); return; }
+
+  const resolution = resolveOutgoing(node);
+  if(resolution.auto){
+    takeEdge(resolution.edge, resolution.reason);
+    run.awaitingChoice = false;
+    render();
+    const nd = nodesById()[run.currentNodeId];
+    narrateNode(nd, resolution.reason, onSpokenEnd);
+  } else if(resolution.edges.length===0){
+    run.finished = true;
+    run.log.push({label:node.label, reason:"No outgoing path \u2014 process stalled here", elapsed: run.elapsed});
+    render();
+    narrateNode(node, "This is as far as the process can go from here.", onSpokenEnd);
+  } else {
+    run.awaitingChoice = true;
+    run.choiceEdges = resolution.edges;
+    render();
+    narrateNode(node, "Waiting for a choice, or flip a variable and try again.", null);
+    if(onSpokenEnd) onSpokenEnd();
+  }
+}
+function takeEdge(edge, reason){
+  run.visitedEdgeIds.add(edge.id);
+  coverage.edges.add(edge.id);
+  run.currentNodeId = edge.to;
+  run.visitedNodeIds.add(edge.to);
+  coverage.nodes.add(edge.to);
+  const byId = nodesById();
+  const nd = byId[edge.to];
+  run.elapsed += slaMinutes(nd.sla);
+  run.log.push({label: nd.label, reason, elapsed: run.elapsed});
+  if(nd.type==="end") run.finished = true;
+  saveLocal();
+}
+function chooseEdge(edgeId){
+  const edge = run.choiceEdges.find(e=>e.id===edgeId);
+  if(!edge) return;
+  takeEdge(edge, "Manually chosen");
+  run.awaitingChoice = false;
+  render();
+  narrateNode(nodesById()[run.currentNodeId], "Manually chosen.", autoplayActive ? autoplayContinue : null);
+}
+function stopAutoplay(){
+  autoplayActive = false;
+  if(autoplayTimer){ clearTimeout(autoplayTimer); autoplayTimer = null; }
+  const btn = document.getElementById("autoplay-btn");
+  if(btn) btn.textContent = "Autoplay";
+  renderRunPanel();
+}
+function autoplayContinue(){
+  if(!autoplayActive) return;
+  if(!run || run.finished || run.awaitingChoice){ stopAutoplay(); return; }
+  const speed = document.getElementById("speed-slider").value;
+  const gap = narrateEnabled ? 300 : (1600 - speed*12);
+  autoplayTimer = setTimeout(()=>{
+    if(!autoplayActive) return;
+    stepRun(autoplayContinue);
+    renderRunPanel();
+  }, gap);
+}
+function toggleAutoplay(){
+  if(autoplayActive){ stopAutoplay(); return; }
+  if(!run || run.finished || run.awaitingChoice) return;
+  autoplayActive = true;
+  document.getElementById("autoplay-btn").textContent = "Pause";
+  stepRun(autoplayContinue);
+  renderRunPanel();
+}
+function autoRunWithNarration(){
+  stopAutoplay();
+  narrateEnabled = true;
+  const cb = document.getElementById("narrate-toggle");
+  if(cb) cb.checked = true;
+  autoplayActive = true;
+  document.getElementById("autoplay-btn").textContent = "Pause";
+  startRun(()=>{ if(autoplayActive) autoplayContinue(); });
+}
+function resetRun(){
+  stopAutoplay();
+  stopSpeech();
+  run = null;
+  render();
+}
+
+function renderRunPanel(){
+  const el = document.getElementById("run-panel");
+  el.style.display = state.mode==="run" ? "block" : "none";
+  if(state.mode!=="run") return;
+
+  const statusEl = document.getElementById("run-status");
+  if(!run){
+    statusEl.textContent = "Not started.";
+  } else if(run.finished){
+    statusEl.textContent = "Process complete.";
+  } else if(run.awaitingChoice){
+    statusEl.textContent = "Waiting for a choice \u2014 pick a path or flip a variable and step again.";
+  } else {
+    const byId = nodesById();
+    statusEl.textContent = "At: " + (byId[run.currentNodeId] ? byId[run.currentNodeId].label : "\u2014");
+  }
+
+  const choicesEl = document.getElementById("run-choices");
+  choicesEl.innerHTML = "";
+  if(run && run.awaitingChoice){
+    run.choiceEdges.forEach(e=>{
+      const b = document.createElement("button");
+      b.className = "choice-btn";
+      const byId = nodesById();
+      b.textContent = (e.label ? e.label+": " : "") + byId[e.to].label;
+      b.addEventListener("click", ()=>chooseEdge(e.id));
+      choicesEl.appendChild(b);
+    });
+  }
+
+  document.getElementById("step-btn").disabled = !run || run.finished || run.awaitingChoice || autoplayActive;
+  document.getElementById("autoplay-btn").disabled = !run || run.finished;
+  document.getElementById("start-run-btn").disabled = autoplayActive;
+  document.getElementById("start-run-btn").textContent = run ? "Restart" : "Start run";
+  const autoBtn = document.getElementById("auto-narrate-btn");
+  if(autoBtn) autoBtn.disabled = autoplayActive && run && !run.finished;
+
+  const logEl = document.getElementById("run-log");
+  logEl.innerHTML = "";
+  if(run){
+    run.log.forEach((entry,i)=>{
+      const row = document.createElement("div");
+      row.className = "log-row";
+      row.innerHTML = `<span class="log-idx">${i+1}</span><span class="log-label"></span><span class="log-time">${entry.elapsed}m</span>`;
+      row.querySelector(".log-label").textContent = entry.label + (entry.reason ? " \u2014 " + entry.reason : "");
+      logEl.appendChild(row);
+    });
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+}
+
+// ---------- minimap ----------
+function renderMinimap(){
+  const svg = document.getElementById("minimap-svg");
+  svg.innerHTML = "";
+  const bounds = canvasBounds();
+  const scale = 170/bounds.w;
+  svg.setAttribute("viewBox", `0 0 170 ${Math.max(60,bounds.h*scale)}`);
+  DATA.nodes.forEach(nd=>{
+    if(state.hiddenRoles.has(nd.role)) return;
+    const dot = svgEl("circle", {cx:nd.x*scale, cy:nd.y*scale, r:2.2, class:"mini-dot"});
+    dot.style.fill = roleColor(nd.role);
+    svg.appendChild(dot);
+  });
+  const viewport = document.getElementById("canvas-viewport");
+  const rect = viewport ? viewport.getBoundingClientRect() : {width:800,height:600};
+  const vw = (rect.width/state.zoom)*scale, vh = (rect.height/state.zoom)*scale;
+  const vx = (-state.pan.x/state.zoom)*scale, vy = (-state.pan.y/state.zoom)*scale;
+  const rectEl = svgEl("rect", {x:vx, y:vy, width:vw, height:vh, class:"mini-viewport"});
+  svg.appendChild(rectEl);
+}
+function minimapClick(ev){
+  const svg = document.getElementById("minimap-svg");
+  const rect = svg.getBoundingClientRect();
+  const bounds = canvasBounds();
+  const scale = 170/bounds.w;
+  const mx = (ev.clientX-rect.left)/rect.width*170;
+  const my = (ev.clientY-rect.top)/rect.height*(bounds.h*scale);
+  const cx = mx/scale, cy = my/scale;
+  const viewport = document.getElementById("canvas-viewport");
+  const vr = viewport.getBoundingClientRect();
+  state.pan.x = vr.width/2 - cx*state.zoom;
+  state.pan.y = vr.height/2 - cy*state.zoom;
+  applyPanZoom();
+  renderMinimap();
+}
+
+// ---------- import/export ----------
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "fire-emergency-process.json";
+  a.click();
+  state.dirty = false;
+}
+function copyJSON(){
+  navigator.clipboard.writeText(JSON.stringify(DATA, null, 2)).then(()=>toast("Copied JSON to clipboard"));
+}
+function importJSON(text){
+  try{
+    const parsed = JSON.parse(text);
+    if(!parsed.nodes || !parsed.edges || !parsed.roles || !parsed.variables) throw new Error("missing required sections");
+    DATA = parsed;
+    if(!DATA.nodes.some(n=>n.x)) autoLayout();
+    coverage = {nodes:new Set(), edges:new Set()};
+    run = null;
+    state.selected = null;
+    pushHistory();
+    closeModal();
+    render();
+    toast("Process loaded");
+  }catch(e){
+    document.getElementById("import-error").textContent = "Couldn't read that JSON \u2014 check for a missing bracket or trailing comma. (" + e.message + ")";
+  }
+}
+function exportSVG(){
+  const svg = document.getElementById("canvas-svg");
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", SVGNS);
+  const style = document.createElementNS(SVGNS, "style");
+  style.textContent = document.getElementById("export-style").textContent;
+  clone.insertBefore(style, clone.firstChild);
+  const serializer = new XMLSerializer();
+  const src = serializer.serializeToString(clone);
+  const blob = new Blob([src], {type:"image/svg+xml"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "fire-emergency-process.svg";
+  a.click();
+}
+function exportPNG(){
+  const svg = document.getElementById("canvas-svg");
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", SVGNS);
+  const style = document.createElementNS(SVGNS, "style");
+  style.textContent = document.getElementById("export-style").textContent;
+  clone.insertBefore(style, clone.firstChild);
+  const w = parseInt(svg.getAttribute("width"),10), h = parseInt(svg.getAttribute("height"),10);
+  const serializer = new XMLSerializer();
+  const src = serializer.serializeToString(clone);
+  const img = new Image();
+  const svgBlob = new Blob([src], {type:"image/svg+xml;charset=utf-8"});
+  const url = URL.createObjectURL(svgBlob);
+  img.onload = function(){
+    const canvas = document.createElement("canvas");
+    canvas.width = w*2; canvas.height = h*2;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#12161B";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.scale(2,2);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "fire-emergency-process.png";
+      a.click();
+    });
+  };
+  img.src = url;
+}
+
+// ---------- print ----------
+function buildPrintView(){
+  const el = document.getElementById("print-view");
+  const meta = DATA.meta || {};
+  let html = `<h1>${meta.title||"Process"}</h1><p class="print-meta">Owner: ${meta.owner||"\u2014"} &middot; Version ${meta.version||1}</p>`;
+  html += `<div class="print-diagram">${document.getElementById("canvas-svg").outerHTML}</div>`;
+  DATA.roles.forEach(role=>{
+    const laneNodes = DATA.nodes.filter(n=>n.role===role.id);
+    if(!laneNodes.length) return;
+    html += `<h2>${role.label}</h2><ol>`;
+    laneNodes.forEach(n=>{
+      html += `<li><strong>${n.label}</strong>${n.detail? " \u2014 "+n.detail : ""}${n.sla? ` <em>(${n.sla})</em>`:""}</li>`;
+    });
+    html += `</ol>`;
+  });
+  const allRules = [];
+  DATA.nodes.forEach(n=>(n.rules||[]).forEach(r=>allRules.push({node:n.label, ...r})));
+  if(allRules.length){
+    html += `<h2>Rules & warnings appendix</h2><ul class="print-rules">`;
+    allRules.forEach(r=>{ html += `<li><span class="rule-kind">${r.kind}</span> \u2014 ${r.node}: ${r.text}</li>`; });
+    html += `</ul>`;
+  }
+  el.innerHTML = html;
+}
+window.addEventListener("beforeprint", buildPrintView);
+
+// ---------- search ----------
+function doSearch(q){
+  state.search = q;
+  renderCanvas();
+}
+function focusFirstMatch(){
+  if(!state.search) return;
+  const m = DATA.nodes.find(n=>n.label.toLowerCase().includes(state.search.toLowerCase()));
+  if(m){ selectNode(m.id); focusOn(m.id); }
+}
+
+// ---------- toast ----------
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove("show"), 2200);
+}
+
+// ---------- modal ----------
+function openModal(){ document.getElementById("modal-backdrop").classList.add("show"); }
+function closeModal(){ document.getElementById("modal-backdrop").classList.remove("show"); document.getElementById("import-error").textContent=""; }
+
+// ---------- notice modal ----------
+let currentNoticeKey = null;
+function openNoticeModal(key){
+  const notice = NOTICES[key];
+  if(!notice) return;
+  currentNoticeKey = key;
+  document.getElementById("notice-modal-title").textContent = notice.title;
+  document.getElementById("notice-modal-svg-wrap").innerHTML = notice.svg;
+  document.getElementById("notice-modal-backdrop").classList.add("show");
+}
+function closeNoticeModal(){
+  document.getElementById("notice-modal-backdrop").classList.remove("show");
+}
+function downloadNoticeSVG(){
+  const notice = NOTICES[currentNoticeKey];
+  if(!notice) return;
+  const blob = new Blob([notice.svg], {type:"image/svg+xml"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "do-not-use-lift-notice.svg";
+  a.click();
+}
+function downloadNoticePNG(){
+  const notice = NOTICES[currentNoticeKey];
+  if(!notice) return;
+  const img = new Image();
+  const svgBlob = new Blob([notice.svg], {type:"image/svg+xml;charset=utf-8"});
+  const url = URL.createObjectURL(svgBlob);
+  img.onload = function(){
+    const canvas = document.createElement("canvas");
+    canvas.width = 800; canvas.height = 1120;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob){
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "do-not-use-lift-notice.png";
+      a.click();
+    });
+  };
+  img.src = url;
+}
+function printNotice(){
+  const w = window.open("", "_blank");
+  const notice = NOTICES[currentNoticeKey];
+  if(!notice || !w) return;
+  w.document.write(`<html><head><title>${notice.title}</title></head><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh;">${notice.svg.replace('viewBox="0 0 400 560"','viewBox="0 0 400 560" style="width:60vh;max-width:90vw;"')}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>w.print(), 300);
+}
+
+// ---------- pan/zoom/drag interaction ----------
+function setupCanvasEvents(){
+  const viewport = document.getElementById("canvas-viewport");
+  const svg = document.getElementById("canvas-svg");
+  let panning = false, panStart = null;
+
+  function toCanvasCoords(clientX, clientY){
+    const rect = viewport.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left - state.pan.x) / state.zoom,
+      y: (clientY - rect.top - state.pan.y) / state.zoom
+    };
+  }
+
+  viewport.addEventListener("mousedown", (ev)=>{
+    const noticeBadge = ev.target.closest(".notice-badge");
+    if(noticeBadge){
+      openNoticeModal(noticeBadge.getAttribute("data-notice"));
+      return;
+    }
+    const nodeEl = ev.target.closest(".node");
+    const edgeEl = ev.target.closest(".edge-hit");
+    if(nodeEl){
+      const id = nodeEl.getAttribute("data-node");
+      if(state.connecting){
+        if(!state.connectFrom) state.connectFrom = id;
+        else { addEdge(state.connectFrom, id); state.connectFrom = null; }
+        render();
+        return;
+      }
+      selectNode(id);
+      if(state.mode==="build"){
+        const nd = DATA.nodes.find(n=>n.id===id);
+        const start = toCanvasCoords(ev.clientX, ev.clientY);
+        state.drag = { id, offX: start.x-nd.x, offY: start.y-nd.y };
+      }
+      return;
+    }
+    if(edgeEl){
+      selectEdge(edgeEl.getAttribute("data-edge"));
+      return;
+    }
+    deselect();
+    panning = true;
+    panStart = { x: ev.clientX-state.pan.x, y: ev.clientY-state.pan.y };
+  });
+
+  window.addEventListener("mousemove", (ev)=>{
+    if(state.drag){
+      const c = toCanvasCoords(ev.clientX, ev.clientY);
+      const nd = DATA.nodes.find(n=>n.id===state.drag.id);
+      nd.x = Math.round(c.x - state.drag.offX);
+      nd.y = Math.round(c.y - state.drag.offY);
+      renderCanvas();
+      return;
+    }
+    if(panning){
+      state.pan.x = ev.clientX - panStart.x;
+      state.pan.y = ev.clientY - panStart.y;
+      applyPanZoom();
+      renderMinimap();
+    }
+  });
+  window.addEventListener("mouseup", ()=>{
+    if(state.drag){ pushHistory(); }
+    state.drag = null;
+    panning = false;
+  });
+
+  viewport.addEventListener("wheel", (ev)=>{
+    ev.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const mx = ev.clientX-rect.left, my = ev.clientY-rect.top;
+    const before = { x:(mx-state.pan.x)/state.zoom, y:(my-state.pan.y)/state.zoom };
+    const delta = ev.deltaY > 0 ? 0.9 : 1.1;
+    state.zoom = Math.min(2.5, Math.max(0.25, state.zoom*delta));
+    state.pan.x = mx - before.x*state.zoom;
+    state.pan.y = my - before.y*state.zoom;
+    applyPanZoom();
+    renderMinimap();
+  }, {passive:false});
+
+  // basic pinch zoom
+  let pinchDist = null;
+  viewport.addEventListener("touchstart", (ev)=>{
+    if(ev.touches.length===2){
+      pinchDist = Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX, ev.touches[0].clientY-ev.touches[1].clientY);
+    }
+  }, {passive:true});
+  viewport.addEventListener("touchmove", (ev)=>{
+    if(ev.touches.length===2 && pinchDist){
+      const d = Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX, ev.touches[0].clientY-ev.touches[1].clientY);
+      const delta = d/pinchDist;
+      state.zoom = Math.min(2.5, Math.max(0.25, state.zoom*delta));
+      pinchDist = d;
+      applyPanZoom();
+      renderMinimap();
+    }
+  }, {passive:true});
+
+  document.getElementById("minimap-svg").addEventListener("click", minimapClick);
+}
+
+function fitToScreen(){
+  const bounds = canvasBounds();
+  const viewport = document.getElementById("canvas-viewport");
+  const rect = viewport.getBoundingClientRect();
+  state.zoom = Math.min(rect.width/bounds.w, rect.height/bounds.h, 1.2);
+  state.pan.x = (rect.width - bounds.w*state.zoom)/2;
+  state.pan.y = 30;
+  applyPanZoom();
+  renderMinimap();
+}
+
+// ---------- keyboard ----------
+function setupKeyboard(){
+  window.addEventListener("keydown", (ev)=>{
+    const tag = (ev.target.tagName||"").toLowerCase();
+    const typing = tag==="input" || tag==="textarea" || tag==="select";
+    if((ev.metaKey||ev.ctrlKey) && ev.key.toLowerCase()==="z"){
+      ev.preventDefault();
+      if(ev.shiftKey) redo(); else undo();
+      return;
+    }
+    if(typing) return;
+    if(ev.key==="Escape"){ deselect(); state.connecting=false; state.connectFrom=null; renderToolbarState(); }
+    if(ev.key==="Delete" || ev.key==="Backspace"){
+      if(state.selected && state.selected.type==="node") deleteNode(state.selected.id);
+      else if(state.selected && state.selected.type==="edge") deleteEdge(state.selected.id);
+    }
+    if(ev.key==="Enter" && state.selected){ /* inspector already open */ }
+  });
+}
+
+// ---------- unsaved changes warning ----------
+window.addEventListener("beforeunload", (ev)=>{
+  let hasLS = true;
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); }catch(e){ hasLS = false; }
+  if(state.dirty && !hasLS){
+    ev.preventDefault(); ev.returnValue = "";
+  }
+});
+
+// ---------- toolbar wiring ----------
+function setupToolbar(){
+  document.getElementById("mode-build").addEventListener("click", ()=>{ state.mode="build"; run=null; stopAutoplay(); stopSpeech(); render(); });
+  document.getElementById("mode-run").addEventListener("click", ()=>{ state.mode="run"; state.selected=null; render(); });
+
+  document.getElementById("undo-btn").addEventListener("click", undo);
+  document.getElementById("redo-btn").addEventListener("click", redo);
+
+  document.getElementById("add-task-btn").addEventListener("click", ()=>addNode(DATA.roles[0].id,"task"));
+  document.getElementById("add-decision-btn").addEventListener("click", ()=>addNode(DATA.roles[0].id,"decision"));
+  document.getElementById("connect-btn").addEventListener("click", ()=>{
+    state.connecting = !state.connecting; state.connectFrom = null; renderToolbarState();
+  });
+  document.getElementById("autolayout-btn").addEventListener("click", ()=>{
+    if(confirm("Reset all nodes to the automatic lane layout? Manual positions will be lost.")){
+      autoLayout(); pushHistory(); render(); fitToScreen();
+    }
+  });
+
+  document.getElementById("search-input").addEventListener("input", (ev)=>doSearch(ev.target.value));
+  document.getElementById("search-input").addEventListener("keydown", (ev)=>{ if(ev.key==="Enter") focusFirstMatch(); });
+
+  document.getElementById("validate-btn").addEventListener("click", ()=>{
+    state.showValidation = !state.showValidation; render();
+  });
+  document.getElementById("coverage-btn").addEventListener("click", ()=>{
+    state.showCoverage = !state.showCoverage; render();
+  });
+  document.getElementById("reset-coverage-btn").addEventListener("click", ()=>{
+    if(confirm("Clear all recorded coverage from previous runs?")){
+      coverage = {nodes:new Set(), edges:new Set()}; saveLocal(); render();
+    }
+  });
+
+  document.getElementById("export-json-btn").addEventListener("click", exportJSON);
+  document.getElementById("copy-json-btn").addEventListener("click", copyJSON);
+  document.getElementById("export-svg-btn").addEventListener("click", exportSVG);
+  document.getElementById("export-png-btn").addEventListener("click", exportPNG);
+  document.getElementById("print-btn").addEventListener("click", ()=>window.print());
+
+  document.getElementById("import-btn").addEventListener("click", openModal);
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+
+  document.getElementById("notice-modal-close").addEventListener("click", closeNoticeModal);
+  document.getElementById("notice-modal-backdrop").addEventListener("click", (ev)=>{ if(ev.target.id==="notice-modal-backdrop") closeNoticeModal(); });
+  document.getElementById("notice-download-svg-btn").addEventListener("click", downloadNoticeSVG);
+  document.getElementById("notice-download-png-btn").addEventListener("click", downloadNoticePNG);
+  document.getElementById("notice-print-btn").addEventListener("click", printNotice);
+  document.getElementById("modal-backdrop").addEventListener("click", (ev)=>{ if(ev.target.id==="modal-backdrop") closeModal(); });
+  document.getElementById("import-load-btn").addEventListener("click", ()=>{
+    importJSON(document.getElementById("import-textarea").value);
+  });
+  document.getElementById("import-file").addEventListener("change", (ev)=>{
+    const file = ev.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      document.getElementById("import-textarea").value = reader.result;
+      importJSON(reader.result);
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById("zoom-in-btn").addEventListener("click", ()=>{ state.zoom=Math.min(2.5,state.zoom*1.2); applyPanZoom(); renderMinimap(); });
+  document.getElementById("zoom-out-btn").addEventListener("click", ()=>{ state.zoom=Math.max(0.25,state.zoom*0.8); applyPanZoom(); renderMinimap(); });
+  document.getElementById("fit-btn").addEventListener("click", fitToScreen);
+
+  document.getElementById("start-run-btn").addEventListener("click", ()=>startRun());
+  document.getElementById("step-btn").addEventListener("click", ()=>stepRun());
+  document.getElementById("autoplay-btn").addEventListener("click", toggleAutoplay);
+  document.getElementById("reset-run-btn").addEventListener("click", resetRun);
+  document.getElementById("auto-narrate-btn").addEventListener("click", autoRunWithNarration);
+  document.getElementById("narrate-toggle").addEventListener("change", (ev)=>{
+    narrateEnabled = ev.target.checked;
+    if(!narrateEnabled) stopSpeech();
+  });
+  document.getElementById("export-log-btn").addEventListener("click", ()=>{
+    if(!run) return;
+    const text = run.log.map((e,i)=>`${i+1}. ${e.label}${e.reason?" \u2014 "+e.reason:""} (t+${e.elapsed}m)`).join("\n");
+    const blob = new Blob([text], {type:"text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "run-log.txt";
+    a.click();
+  });
+
+  document.getElementById("inspector-close").addEventListener("click", deselect);
+
+  document.getElementById("add-variable-btn").addEventListener("click", ()=>{
+    let i=1; while(DATA.variables.some(v=>v.id==="var_"+i)) i++;
+    DATA.variables.push({id:"var_"+i, label:"New variable", type:"boolean", value:false});
+    pushHistory(); render();
+  });
+}
+
+// ---------- init ----------
+function reconcileWithDefaults(){
+  // A restored browser session carries whatever DATA existed when it was saved.
+  // If this file has since shipped new built-in signage/metadata on a node that
+  // still exists (matched by id), carry it forward rather than losing it silently.
+  DEFAULT_DATA.nodes.forEach(defNode=>{
+    if(defNode.notice){
+      const liveNode = DATA.nodes.find(n=>n.id===defNode.id);
+      if(liveNode) liveNode.notice = defNode.notice;
+    }
+  });
+}
+
+function init(){
+  const restored = loadLocal();
+  DATA = restored ? DATA : JSON.parse(JSON.stringify(DEFAULT_DATA));
+  if(!restored) autoLayout();
+  if(!DATA.nodes.some(n=>n.x)) autoLayout();
+  reconcileWithDefaults();
+  history = [JSON.stringify(DATA)];
+  historyIndex = 0;
+  setupToolbar();
+  setupCanvasEvents();
+  setupKeyboard();
+  render();
+  setTimeout(fitToScreen, 50);
+  if(restored) toast("Restored your last session");
+}
+
+document.addEventListener("DOMContentLoaded", init);
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receiving &amp; Storing Hazardous Chemicals: Live Process Map</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1c2430;--mu:#5d6877;--bd:#d9dee5;--ac:#d9480f;--acs:#ffe8dc;--ok:#2b8a3e;--lane:#eef1f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--card:#1d232b;--tx:#e8ecf1;--mu:#99a3b0;--bd:#323b47;--ac:#ff8a4c;--acs:#3a2418;--ok:#69db7c;--lane:#1a2027}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:0 0 2px}
+.sub{color:var(--mu);margin:0 0 12px;font-size:.9rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button:disabled{opacity:.45;cursor:not-allowed}
+label{color:var(--mu);font-size:.9rem;display:flex;gap:6px;align-items:center}
+.prog{flex:1;min-width:120px;height:6px;background:var(--bd);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--ac);transition:width .4s}
+.map{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px}
+svg{display:block}
+.ln{fill:var(--lane)}.ln.on{fill:var(--acs)}
+.lt{fill:var(--tx);font-size:12px;font-weight:600}
+.ls{fill:var(--mu);font-size:10px}
+.nd rect{fill:var(--card);stroke:var(--bd);stroke-width:1.5;transition:all .3s}
+.nd text{fill:var(--tx);font-size:10.5px;text-anchor:middle}
+.nd .n{font-weight:700;fill:var(--mu)}
+.nd{cursor:pointer}
+.nd.done rect{stroke:var(--ok)}
+.nd.cur rect{stroke:var(--ac);stroke-width:3;fill:var(--acs)}
+.cn{fill:none;stroke:var(--mu);stroke-width:1.5}
+.cn.done{stroke:var(--ok)}
+#tok{fill:var(--ac);transition:transform .7s ease}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:760px){.panel{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px}
+.card h2{font-size:1rem;margin:0 0 6px}
+.cap{font-size:1.02rem}
+.r{display:flex;gap:8px;margin:6px 0;padding:6px 8px;border-radius:8px;opacity:.55}
+.r.on{opacity:1;background:var(--acs)}
+.r b{min-width:112px;font-size:.85rem}
+.r span{font-size:.88rem}
+.all{margin-top:12px}
+.all .r{opacity:1}
+</style>
+</head>
+<body>
+<main>
+<h1>Receiving &amp; Storing Hazardous Chemicals</h1>
+<p class="sub">Live narrated process map with roles and responsibilities. Press Start to begin; Pause at any time. Click a step to jump to it.</p>
+<div class="bar">
+<button class="p" id="go">▶ Start</button>
+<button id="pz" disabled>⏸ Pause</button>
+<label><input type="checkbox" id="vo" checked> Voice narration</label>
+<div class="prog"><i id="pg"></i></div>
+<span class="sub" id="ct" style="margin:0">Step 0 / 10</span>
+</div>
+<div class="map" id="map"></div>
+<div class="panel">
+<div class="card"><h2 id="st">Ready</h2><div class="cap" id="cp">Press Start to walk through the ten steps. Captions appear here, and the narration is read aloud when voice is on.</div></div>
+<div class="card"><h2>Who does what in this step</h2><div id="rl"></div></div>
+</div>
+<div class="card all"><h2>Roles &amp; responsibilities (whole process)</h2><div id="al"></div></div>
+</main>
+<script>
+const L=[
+["Buyer / Procurement","Orders approved chemicals"],
+["Supplier / Driver","Delivers and presents documents"],
+["Stores Controller","Receives, records and stores"],
+["Quality Manager","Product safety and approvals"],
+["Risk Manager","Risk controls and audit"]];
+const ALL=[
+["Buyer / Procurement","Orders only approved chemicals with a current SDS; notifies Stores of deliveries; resolves supplier discrepancies."],
+["Supplier / Driver","Delivers a secured load with transport documents, SDS and hazard labelling; assists only as directed; keeps clear during offloading."],
+["Stores Controller","Prepares the bay, inspects load, documents and containers, offloads, records in the register, segregates and stores, and applies FIFO."],
+["Quality Manager","Confirms food-safe suitability, decides on doubtful or non-conforming stock, and signs off inspections."],
+["Risk Manager","Owns the risk assessment and SDS review, verifies storage controls, audits inspections and follows up incidents."]];
+const S=[
+{l:2-2,t:["Pre-approve","chemical"],h:"Pre-approve the chemical",n:"Step one. Before ordering, the Buyer confirms the chemical is on the approved list and has a current Safety Data Sheet. The Risk Manager confirms a risk assessment exists, and the Quality Manager confirms it is food safe where it could touch product or packaging.",d:{0:"Check approved list and current SDS",3:"Confirm food-safe suitability",4:"Confirm risk assessment exists"}},
+{l:2,t:["Notify &","prepare bay"],h:"Notify and prepare for delivery",n:"Step two. The Buyer notifies Stores of the delivery. The Stores Controller schedules it, readies the receiving bay and spill kit, and makes sure only trained, authorised staff will receive the chemicals.",d:{0:"Notify Stores of delivery date",2:"Prepare bay, spill kit and trained staff"}},
+{l:1,t:["Vehicle &","load check"],h:"Inspect the vehicle and load",n:"Step three. The driver arrives and presents transport documents and hazard labelling. The Stores Controller checks the load is secured, and looks for leaks, spills or odours.",d:{1:"Present transport documents and labelling",2:"Check load is secure; no leaks or odours"}},
+{l:2,t:["Verify","documents"],h:"Verify documents against the order",n:"Step four. The Stores Controller matches the delivery note, purchase order and SDS, confirming product name, grade, quantity, batch number and expiry date. The Buyer resolves any discrepancy with the supplier.",d:{2:"Match delivery note, PO and SDS; check batch and expiry",0:"Resolve discrepancies with supplier"}},
+{l:2,t:["Inspect","containers"],h:"Inspect the containers",n:"Step five. The Stores Controller inspects every container for damage, leaks, bulging, corrosion and intact seals, and confirms labels are legible. Damaged or unlabelled containers are rejected and recorded. The Quality Manager decides on doubtful stock.",d:{2:"Inspect containers; reject and record damaged stock",3:"Decide on doubtful or non-conforming stock"}},
+{l:2,t:["Offload","safely"],h:"Offload safely",n:"Step six. The Stores Controller offloads in correct PPE using approved handling equipment. Containers are never rolled, dropped or dragged. The driver and all unauthorised persons keep clear.",d:{2:"Offload with PPE and approved equipment",1:"Stay clear of the offloading area"}},
+{l:2,t:["Record","receipt"],h:"Record the receipt",n:"Step seven. The Stores Controller logs product, quantity, batch, supplier, date and storage location in the chemical register, and files the SDS where every user can reach it.",d:{2:"Update chemical register; file SDS"}},
+{l:2,t:["Segregate","& store"],h:"Segregate and store correctly",n:"Step eight. Chemicals go promptly to the designated store. The Stores Controller segregates incompatibles such as acids from alkalis, and oxidisers from flammables, in a ventilated, locked, bunded area away from food, packaging and ignition sources.",d:{2:"Segregate incompatibles; store in locked, bunded area"}},
+{l:4,t:["Verify storage","controls"],h:"Verify storage controls",n:"Step nine. The Risk Manager verifies signage, shelf labelling, spill kit, eyewash, fire extinguisher and emergency numbers are in place and working.",d:{4:"Verify signage, spill kit, eyewash, extinguisher",2:"Correct any gaps found"}},
+{l:3,t:["Review &","monitor"],h:"Review and monitor",n:"Step ten. Stores inspects stock, containers and bunds regularly and applies first in, first out. The Quality Manager signs off inspections, and the Risk Manager audits, follows up incidents and reviews SDSs and the risk assessment at least annually. The process is complete.",d:{2:"Regular inspections, FIFO, remove expired stock",3:"Sign off inspections",4:"Audit, follow up incidents, annual review"}}];
+S[0].l=0;
+const W=118,X0=150,LH=78,NW=100,NH=46,H=L.length*LH;
+const cx=i=>X0+i*W+NW/2,cy=i=>S[i].l*LH+LH/2;
+const $=id=>document.getElementById(id);
+let g='<svg id="sv" width="'+(X0+S.length*W+20)+'" height="'+H+'">';
+g+='<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L8,4L0,8z" fill="currentColor" style="color:var(--mu)"/></marker></defs>';
+L.forEach((r,i)=>{g+='<rect class="ln" id="ln'+i+'" x="0" y="'+i*LH+'" width="100%" height="'+LH+'"/><text class="lt" x="10" y="'+(i*LH+30)+'">'+r[0]+'</text><text class="ls" x="10" y="'+(i*LH+46)+'">'+r[1]+'</text>'});
+for(let i=0;i<S.length-1;i++){const a=cx(i)+NW/2,b=cx(i+1)-NW/2,m=(a+b)/2;g+='<path class="cn" id="cn'+i+'" marker-end="url(#ar)" d="M'+a+','+cy(i)+' H'+m+' V'+cy(i+1)+' H'+b+'"/>'}
+S.forEach((s,i)=>{g+='<g class="nd" id="nd'+i+'" data-i="'+i+'"><rect x="'+(cx(i)-NW/2)+'" y="'+(cy(i)-NH/2)+'" width="'+NW+'" height="'+NH+'" rx="8"/><text class="n" x="'+cx(i)+'" y="'+(cy(i)-8)+'">'+(i+1)+'</text><text x="'+cx(i)+'" y="'+(cy(i)+5)+'">'+s.t[0]+'</text><text x="'+cx(i)+'" y="'+(cy(i)+18)+'">'+s.t[1]+'</text></g>'});
+g+='<circle id="tok" r="8" cx="0" cy="0" style="transform:translate('+(cx(0)-NW/2-14)+'px,'+cy(0)+'px);opacity:0"/></svg>';
+$('map').innerHTML=g;
+$('al').innerHTML=ALL.map(r=>'<div class="r"><b>'+r[0]+'</b><span>'+r[1]+'</span></div>').join('');
+let idx=-1,run=false,paused=false,tm=null,gen=0;
+const syn=window.speechSynthesis;
+function show(i){
+ const s=S[i];
+ document.querySelectorAll('.nd').forEach((e,k)=>{e.classList.toggle('cur',k===i);e.classList.toggle('done',k<i)});
+ S.forEach((_,k)=>{const c=$('cn'+k);if(c)c.classList.toggle('done',k<i)});
+ L.forEach((_,k)=>$('ln'+k).classList.toggle('on',k in s.d));
+ const t=$('tok');t.style.opacity=1;t.style.transform='translate('+(cx(i)-NW/2-14)+'px,'+cy(i)+'px)';
+ $('st').textContent=(i+1)+'. '+s.h;$('cp').textContent=s.n;
+ $('rl').innerHTML=L.map((r,k)=>'<div class="r'+(k in s.d?' on':'')+'"><b>'+r[0]+'</b><span>'+(s.d[k]||'Not involved in this step')+'</span></div>').join('');
+ $('pg').style.width=((i+1)/S.length*100)+'%';$('ct').textContent='Step '+(i+1)+' / '+S.length;
+ const sc=$('map'),n=$('nd'+i).getBoundingClientRect(),m=sc.getBoundingClientRect();
+ sc.scrollTo({left:sc.scrollLeft+n.left-m.left-m.width/2+NW/2,behavior:'smooth'});
+}
+function stop(){gen++;clearTimeout(tm);if(syn)syn.cancel()}
+function play(i){
+ stop();idx=i;show(i);const my=gen,txt=S[i].h+'. '+S[i].n;
+ const next=()=>{if(my!==gen)return;gen++;clearTimeout(tm);if(i<S.length-1)tm=setTimeout(()=>play(i+1),700);else finish()};
+ if($('vo').checked&&syn){
+  const u=new SpeechSynthesisUtterance(txt);u.lang='en-ZA';u.rate=.95;u.onend=next;u.onerror=()=>{if(my===gen)tm=setTimeout(next,2000)};
+  syn.speak(u);tm=setTimeout(next,txt.length*110+6000);
+ }else tm=setTimeout(next,txt.length*55+2500);
+}
+function finish(){run=false;paused=false;$('go').textContent='↻ Restart';$('pz').disabled=true;$('pz').textContent='⏸ Pause';$('st').textContent='Process complete';
+ document.querySelectorAll('.nd').forEach(e=>{e.classList.remove('cur');e.classList.add('done')});S.forEach((_,k)=>{const c=$('cn'+k);if(c)c.classList.add('done')})}
+$('go').onclick=()=>{run=true;paused=false;$('go').textContent='↻ Restart';$('pz').disabled=false;$('pz').textContent='⏸ Pause';play(0)};
+$('pz').onclick=()=>{
+ if(!run)return;
+ if(!paused){paused=true;stop();$('pz').textContent='▶ Resume'}
+ else{paused=false;$('pz').textContent='⏸ Pause';play(Math.max(idx,0))}
+};
+$('vo').onchange=()=>{if(run&&!paused)play(idx)};
+document.querySelectorAll('.nd').forEach(e=>e.onclick=()=>{
+ const i=+e.dataset.i;stop();show(i);idx=i;run=true;paused=true;$('go').textContent='↻ Restart';$('pz').disabled=false;$('pz').textContent='▶ Resume'});
+</script>
+</body>
+</html>
