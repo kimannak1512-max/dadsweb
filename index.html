@@ -51,7 +51,7 @@
   /* Hero: a live process map that steps through its own nodes */
   .hero { padding: 4rem 0 3.5rem; }
   .map { margin-top: 3rem; background: var(--wash); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem 1rem 1rem; }
-  .map svg { width: 100%; height: auto; display: block; }
+  .map img { width: 100%; height: auto; display: block; border-radius: 6px; }
   .map .edge { stroke: var(--line); stroke-width: 3; }
   .map .node { fill: var(--paper); stroke: var(--brand); stroke-width: 3; animation: step 10s infinite; }
   .map text { font: 600 13px "Schibsted Grotesk", system-ui, sans-serif; fill: var(--ink); text-anchor: middle; }
@@ -122,23 +122,10 @@
       <a class="btn btn-ghost" href="request.html">Ask for a pilot map</a>
     </div>
 
-    <div class="map" role="img" aria-label="Example process map: five connected steps that light up one after another">
-      <svg viewBox="0 0 900 150">
-        <line class="edge" x1="90" y1="60" x2="270" y2="60"/>
-        <line class="edge" x1="270" y1="60" x2="450" y2="60"/>
-        <line class="edge" x1="450" y1="60" x2="630" y2="60"/>
-        <line class="edge" x1="630" y1="60" x2="810" y2="60"/>
-        <circle class="node n1" cx="90" cy="60" r="26"/>
-        <circle class="node n2" cx="270" cy="60" r="26"/>
-        <circle class="node n3" cx="450" cy="60" r="26"/>
-        <circle class="node n4" cx="630" cy="60" r="26"/>
-        <circle class="node n5" cx="810" cy="60" r="26"/>
-        <text x="90" y="120">Alarm raised</text>
-        <text x="270" y="120">Stop work</text>
-        <text x="450" y="120">Isolate energy</text>
-        <text x="630" y="120">Evacuate</text>
-        <text x="810" y="120">Assemble and count</text>
-      </svg>
+    <div class="map">
+      <a href="hazardous-chemicals.html" aria-label="Open the hazardous chemicals process map demo">
+        <img src="hazardous-chemicals-process.gif" alt="Animated process map for receiving and storing hazardous chemicals, stepping through each stage in order" width="1200" loading="eager">
+      </a>
       <p class="map-cap">Each step is shown, narrated and followed in order, at the pace of the person using it.</p>
     </div>
   </div>
