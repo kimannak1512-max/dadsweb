@@ -68,10 +68,11 @@
   .step p { margin: 0; color: var(--muted); }
   ul.plain { padding-left: 1.1rem; margin: 0 0 1rem; max-width: 62ch; }
   ul.plain li { margin-bottom: .5rem; }
-  .proof { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 2rem; }
+  .proof { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 2rem; }
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.75rem; }
   .card p { color: var(--muted); }
-  .card .btn { margin-top: .5rem; }
+  .card { display: flex; flex-direction: column; }
+  .card .btn { margin-top: auto; align-self: flex-start; }
   .offer { background: var(--brand); color: #fff; }
   .offer h2, .offer p { color: #fff; }
   .offer .btn { background: #fff; color: var(--brand); border-color: #fff; }
@@ -114,7 +115,7 @@
     <h1>Map, Rethink, Innovate</h1>
     <p class="lead">We convert static, written processes into interactive, narrated, live process maps. Use them to train new staff, and as a reference for trained staff when they face an unfamiliar task, a critical situation or a procedure they have not done in a while.</p>
     <div class="actions">
-      <a class="btn btn-primary" href="demo.html">Open the live demo</a>
+      <a class="btn btn-primary" href="fire-evacuation.html">Open the live demo</a>
       <a class="btn btn-ghost" href="#contact">Ask for a pilot map</a>
     </div>
 
@@ -192,7 +193,12 @@
       <div class="card">
         <h3>Fire evacuation process map</h3>
         <p>A live, narrated evacuation procedure. Step through it yourself, or let it run on autoplay.</p>
-        <a class="btn btn-primary" href="demo.html">Open the live demo</a>
+        <a class="btn btn-primary" href="fire-evacuation.html">Open the live demo</a>
+      </div>
+      <div class="card">
+        <h3>Receiving and storing hazardous chemicals</h3>
+        <p>A live process map for receiving hazardous chemicals and storing them safely, with each check shown in the order it has to happen.</p>
+        <a class="btn btn-primary" href="hazardous-chemicals.html">Open the live demo</a>
       </div>
       <div class="card">
         <h3>Ammonia oil pump: dismantle and assemble</h3>
@@ -218,6 +224,9 @@
     <h2>About Proc-Ino</h2>
     <p>Proc-Ino stands for Process Innovations. It was founded by Petrus Kruger, a logistics specialist with experience in warehousing, distribution, quality and risk, who has seen first-hand how often good procedures go unused.</p>
     <p>Proc-Ino is based in Alberton, Gauteng, and works with businesses of any size and in any sector across South Africa.</p>
+    <div class="actions">
+      <a class="btn btn-ghost" href="proc-ino-business-profile.pdf" target="_blank" rel="noopener">Download our company profile (PDF)</a>
+    </div>
   </div>
 </section>
 
