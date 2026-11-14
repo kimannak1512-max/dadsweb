@@ -81,6 +81,9 @@
   .contact-list { list-style: none; padding: 0; margin: 1.25rem 0 0; }
   .contact-list li { margin-bottom: .6rem; }
   .contact-list strong { display: inline-block; min-width: 6.5rem; }
+  .form-wrap { scroll-margin-top: 1rem; margin: 1.5rem 0 2.5rem; max-width: 640px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .form-wrap iframe { display: block; width: 100%; height: 858px; border: 0; }
+  @media (max-width: 640px) { .form-wrap iframe { height: 1050px; } }
   footer { border-top: 1px solid var(--line); padding: 1.5rem 0; color: var(--muted); font-size: .95rem; }
   footer p { margin: 0; max-width: none; }
 </style>
@@ -116,7 +119,7 @@
     <p class="lead">We convert static, written processes into interactive, narrated, live process maps. Use them to train new staff, and as a reference for trained staff when they face an unfamiliar task, a critical situation or a procedure they have not done in a while.</p>
     <div class="actions">
       <a class="btn btn-primary" href="fire-evacuation.html">Open the live demo</a>
-      <a class="btn btn-ghost" href="#contact">Ask for a pilot map</a>
+      <a class="btn btn-ghost" href="request.html">Ask for a pilot map</a>
     </div>
 
     <div class="map" role="img" aria-label="Example process map: five connected steps that light up one after another">
@@ -203,7 +206,7 @@
       <div class="card">
         <h3>Ammonia oil pump: dismantle and assemble</h3>
         <p>A maintenance procedure mapped step by step, with the safety checks placed where the work happens. Available on request.</p>
-        <a class="btn btn-ghost" href="mailto:petrus.kruger@proc-ino.co.za?subject=Please%20send%20the%20ammonia%20oil%20pump%20example">Request this example</a>
+        <a class="btn btn-ghost" href="request.html">Request this example</a>
       </div>
     </div>
   </div>
@@ -214,7 +217,7 @@
     <h2>Start with one pilot map</h2>
     <p>Pick one process that matters to you, administrative or operational. We scope it with you first, then quote a fixed fee for the map. You see the result before you commit to more.</p>
     <div class="actions">
-      <a class="btn" href="mailto:petrus.kruger@proc-ino.co.za?subject=Pilot%20process%20map">Ask for a pilot map</a>
+      <a class="btn" href="request.html">Ask for a pilot map</a>
     </div>
   </div>
 </section>
@@ -234,6 +237,9 @@
   <div class="wrap">
     <h2>Talk to us</h2>
     <p>Tell us which procedure you would like to see as a live map, and we will come back to you.</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="request.html">Fill in the request form</a>
+    </div>
     <ul class="contact-list">
       <li><strong>Email</strong> <a href="mailto:petrus.kruger@proc-ino.co.za">petrus.kruger@proc-ino.co.za</a></li>
       <li><strong>Phone</strong> <a href="tel:+27712782786">071 278 2786</a></li>
