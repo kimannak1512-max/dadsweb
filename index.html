@@ -41,6 +41,10 @@
   p { margin: 0 0 1rem; max-width: 62ch; }
   section { padding: 4.5rem 0; }
   .lead { font-size: 1.25rem; color: var(--muted); max-width: 52ch; }
+  .lead-intro { margin-bottom: .4rem; }
+  .lead-list, .lead-list ul { list-style: none; padding: 0; margin: 0; font-size: 1.25rem; color: var(--muted); }
+  .lead-list li { margin-bottom: .3rem; }
+  .lead-list ul { padding-left: 1.75rem; margin-top: .3rem; }
   .btn { display: inline-block; padding: .85rem 1.5rem; border-radius: 6px; font-weight: 700; text-decoration: none; border: 2px solid var(--brand); }
   .btn-primary { background: var(--brand); color: #fff; }
   .btn-primary:hover { background: var(--ink); border-color: var(--ink); }
@@ -48,18 +52,49 @@
   .btn-ghost:hover { background: var(--brand-soft); }
   .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
 
-  /* Hero: a live process map that steps through its own nodes */
+  /* Hero */
   .hero { padding: 4rem 0 3.5rem; }
-  .map { margin-top: 3rem; background: var(--wash); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem 1rem 1rem; }
-  .map img { width: 100%; height: auto; display: block; border-radius: 6px; }
-  .map .edge { stroke: var(--line); stroke-width: 3; }
-  .map .node { fill: var(--paper); stroke: var(--brand); stroke-width: 3; animation: step 10s infinite; }
-  .map text { font: 600 13px "Schibsted Grotesk", system-ui, sans-serif; fill: var(--ink); text-anchor: middle; }
-  .map .n1 { animation-delay: 0s; } .map .n2 { animation-delay: 2s; } .map .n3 { animation-delay: 4s; }
-  .map .n4 { animation-delay: 6s; } .map .n5 { animation-delay: 8s; }
-  @keyframes step { 0%, 18% { fill: var(--brand); } 22%, 100% { fill: var(--paper); } }
-  .map-cap { margin: .75rem 0 0; font-size: .95rem; color: var(--muted); text-align: center; max-width: none; }
-  @media (prefers-reduced-motion: reduce) { .map .node { animation: none; } .map .n1 { fill: var(--brand); } html { scroll-behavior: auto; } }
+
+  /* Interactive process map (brand blue plus neutrals only) */
+  .pm { margin-top: 3rem; }
+  .pm h2 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  .pm .sub { color: var(--muted); font-size: .95rem; margin: 0 0 .9rem; max-width: none; }
+  .pm .bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .9rem; }
+  .pm button { font: inherit; font-weight: 500; padding: .5rem 1rem; border-radius: 6px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+  .pm button:hover:not(:disabled) { border-color: var(--brand); }
+  .pm button.p { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+  .pm button.p:hover { background: var(--ink); border-color: var(--ink); }
+  .pm button:disabled { opacity: .45; cursor: not-allowed; }
+  .pm label { color: var(--muted); font-size: .95rem; display: flex; gap: .4rem; align-items: center; }
+  .pm .prog { flex: 1; min-width: 120px; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .pm .prog i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .4s; }
+  .pm .count { color: var(--muted); font-size: .95rem; }
+  .pm-map { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+  .pm svg { display: block; }
+  .pm .ln { fill: var(--wash); } .pm .ln.on { fill: var(--brand-soft); }
+  .pm .lt { fill: var(--ink); font-size: 12px; font-weight: 700; }
+  .pm .ls { fill: var(--muted); font-size: 10px; }
+  .pm .nd { cursor: pointer; }
+  .pm .nd rect { fill: var(--paper); stroke: var(--line); stroke-width: 1.5; transition: all .3s; }
+  .pm .nd text { fill: var(--ink); font-size: 10.5px; text-anchor: middle; }
+  .pm .nd .n { font-weight: 700; fill: var(--muted); }
+  .pm .nd.done rect { stroke: var(--ink); }
+  .pm .nd.cur rect { stroke: var(--brand); stroke-width: 3; fill: var(--brand-soft); }
+  .pm .cn { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+  .pm .cn.done { stroke: var(--ink); }
+  .pm #tok { fill: var(--brand); transition: transform .7s ease; }
+  .pm .panel { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; margin-top: .9rem; }
+  @media (max-width: 760px) { .pm .panel { grid-template-columns: 1fr; } }
+  .pm .pc { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1rem; }
+  .pm .pc h3 { font-size: 1rem; margin: 0 0 .4rem; }
+  .pm .cap { font-size: 1.02rem; }
+  .pm .r { display: flex; gap: .5rem; margin: .4rem 0; padding: .4rem .5rem; border-radius: 6px; opacity: .55; }
+  .pm .r.on { opacity: 1; background: var(--brand-soft); }
+  .pm .r b { min-width: 7rem; font-size: .88rem; }
+  .pm .r span { font-size: .92rem; }
+  .pm .all { margin-top: .9rem; }
+  .pm .all .r { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .pm #tok, .pm .nd rect, .pm .prog i { transition: none; } }
 
   .wash { background: var(--wash); }
   .cols { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 2rem; }
@@ -68,11 +103,10 @@
   .step p { margin: 0; color: var(--muted); }
   ul.plain { padding-left: 1.1rem; margin: 0 0 1rem; max-width: 62ch; }
   ul.plain li { margin-bottom: .5rem; }
-  .proof { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 2rem; }
+  .proof { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 2rem; }
   .card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.75rem; }
   .card p { color: var(--muted); }
-  .card { display: flex; flex-direction: column; }
-  .card .btn { margin-top: auto; align-self: flex-start; }
+  .card .btn { margin-top: .5rem; }
   .offer { background: var(--brand); color: #fff; }
   .offer h2, .offer p { color: #fff; }
   .offer .btn { background: #fff; color: var(--brand); border-color: #fff; }
@@ -81,9 +115,6 @@
   .contact-list { list-style: none; padding: 0; margin: 1.25rem 0 0; }
   .contact-list li { margin-bottom: .6rem; }
   .contact-list strong { display: inline-block; min-width: 6.5rem; }
-  .form-wrap { scroll-margin-top: 1rem; margin: 1.5rem 0 2.5rem; max-width: 640px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  .form-wrap iframe { display: block; width: 100%; height: 858px; border: 0; }
-  @media (max-width: 640px) { .form-wrap iframe { height: 1050px; } }
   footer { border-top: 1px solid var(--line); padding: 1.5rem 0; color: var(--muted); font-size: .95rem; }
   footer p { margin: 0; max-width: none; }
 </style>
@@ -116,17 +147,32 @@
 <section class="hero">
   <div class="wrap">
     <h1>Map, Rethink, Innovate</h1>
-    <p class="lead">We convert static, written processes into interactive, narrated, live process maps. Use them to train new staff, and as a reference for trained staff when they face an unfamiliar task, a critical situation or a procedure they have not done in a while.</p>
+    <p class="lead">We convert static, written processes into interactive, narrated, live process maps.</p>
+    <p class="lead lead-intro">Use them to:</p>
+    <ul class="lead-list">
+      <li>(1) train new staff</li>
+      <li>(2) serve as a reference for trained staff when they face:
+        <ul>
+          <li>(a) an unfamiliar task</li>
+          <li>(b) a critical situation</li>
+          <li>(c) a procedure they have not done in a while</li>
+        </ul>
+      </li>
+    </ul>
     <div class="actions">
-      <a class="btn btn-primary" href="fire-evacuation.html">Open the live demo</a>
-      <a class="btn btn-ghost" href="request.html">Ask for a pilot map</a>
+      <a class="btn btn-primary" href="demo.html">Open the live demo</a>
+      <a class="btn btn-ghost" href="#contact">Ask for a pilot map</a>
     </div>
 
-    <div class="map">
-      <a href="hazardous-chemicals.html" aria-label="Open the hazardous chemicals process map demo">
-        <img src="hazardous-chemicals-process.gif" alt="Animated process map for receiving and storing hazardous chemicals, stepping through each stage in order" width="1200" loading="eager">
-      </a>
-      <p class="map-cap">Each step is shown, narrated and followed in order, at the pace of the person using it.</p>
+    <div class="pm">
+      <h2>Example: Receiving &amp; Storing Hazardous Chemicals</h2>
+      <div class="bar">
+        <button id="pz">&#9208; Pause</button>
+        <label><input type="checkbox" id="vo"> Voice narration</label>
+        <div class="prog"><i id="pg"></i></div>
+        <span class="count" id="ct">Step 1 / 10</span>
+      </div>
+      <div class="pm-map" id="map"></div>
     </div>
   </div>
 </section>
@@ -135,7 +181,7 @@
   <div class="wrap">
     <h2>Written procedures are rarely followed when it counts</h2>
     <p>Long SOPs sit in folders. New staff skim them once. When something goes wrong, or a rarely performed task comes up, nobody has time to search a manual, so people rely on memory and skip steps.</p>
-    <p>The result is rework, delays, errors and, in some work, incidents or failed audits.</p>
+    <p>The result is errors which lead to rework, delays, incidents or failed audits.</p>
   </div>
 </section>
 
@@ -183,17 +229,12 @@
       <div class="card">
         <h3>Fire evacuation process map</h3>
         <p>A live, narrated evacuation procedure. Step through it yourself, or let it run on autoplay.</p>
-        <a class="btn btn-primary" href="fire-evacuation.html">Open the live demo</a>
-      </div>
-      <div class="card">
-        <h3>Receiving and storing hazardous chemicals</h3>
-        <p>A live process map for receiving hazardous chemicals and storing them safely, with each check shown in the order it has to happen.</p>
-        <a class="btn btn-primary" href="hazardous-chemicals.html">Open the live demo</a>
+        <a class="btn btn-primary" href="demo.html">Open the live demo</a>
       </div>
       <div class="card">
         <h3>Ammonia oil pump: dismantle and assemble</h3>
         <p>A maintenance procedure mapped step by step, with the safety checks placed where the work happens. Available on request.</p>
-        <a class="btn btn-ghost" href="request.html">Request this example</a>
+        <a class="btn btn-ghost" href="mailto:petrus.kruger@proc-ino.co.za?subject=Please%20send%20the%20ammonia%20oil%20pump%20example">Request this example</a>
       </div>
     </div>
   </div>
@@ -204,7 +245,7 @@
     <h2>Start with one pilot map</h2>
     <p>Pick one process that matters to you, administrative or operational. We scope it with you first, then quote a fixed fee for the map. You see the result before you commit to more.</p>
     <div class="actions">
-      <a class="btn" href="request.html">Ask for a pilot map</a>
+      <a class="btn" href="mailto:petrus.kruger@proc-ino.co.za?subject=Pilot%20process%20map">Ask for a pilot map</a>
     </div>
   </div>
 </section>
@@ -214,9 +255,6 @@
     <h2>About Proc-Ino</h2>
     <p>Proc-Ino stands for Process Innovations. It was founded by Petrus Kruger, a logistics specialist with experience in warehousing, distribution, quality and risk, who has seen first-hand how often good procedures go unused.</p>
     <p>Proc-Ino is based in Alberton, Gauteng, and works with businesses of any size and in any sector across South Africa.</p>
-    <div class="actions">
-      <a class="btn btn-ghost" href="proc-ino-business-profile.pdf" target="_blank" rel="noopener">Download our company profile (PDF)</a>
-    </div>
   </div>
 </section>
 
@@ -224,9 +262,6 @@
   <div class="wrap">
     <h2>Talk to us</h2>
     <p>Tell us which procedure you would like to see as a live map, and we will come back to you.</p>
-    <div class="actions">
-      <a class="btn btn-primary" href="request.html">Fill in the request form</a>
-    </div>
     <ul class="contact-list">
       <li><strong>Email</strong> <a href="mailto:petrus.kruger@proc-ino.co.za">petrus.kruger@proc-ino.co.za</a></li>
       <li><strong>Phone</strong> <a href="tel:+27712782786">071 278 2786</a></li>
@@ -243,5 +278,72 @@
   </div>
 </footer>
 
+<script>
+const L=[
+["Buyer / Procurement","Orders approved chemicals"],
+["Supplier / Driver","Delivers and presents documents"],
+["Stores Controller","Receives, records and stores"],
+["Quality Manager","Product safety and approvals"],
+["Risk Manager","Risk controls and audit"]];
+const ALL=[
+["Buyer / Procurement","Orders only approved chemicals with a current SDS; notifies Stores of deliveries; resolves supplier discrepancies."],
+["Supplier / Driver","Delivers a secured load with transport documents, SDS and hazard labelling; assists only as directed; keeps clear during offloading."],
+["Stores Controller","Prepares the bay, inspects load, documents and containers, offloads, records in the register, segregates and stores, and applies FIFO."],
+["Quality Manager","Confirms food-safe suitability, decides on doubtful or non-conforming stock, and signs off inspections."],
+["Risk Manager","Owns the risk assessment and SDS review, verifies storage controls, audits inspections and follows up incidents."]];
+const S=[
+{l:2-2,t:["Pre-approve","chemical"],h:"Pre-approve the chemical",n:"Step one. Before ordering, the Buyer confirms the chemical is on the approved list and has a current Safety Data Sheet. The Risk Manager confirms a risk assessment exists, and the Quality Manager confirms it is food safe where it could touch product or packaging.",d:{0:"Check approved list and current SDS",3:"Confirm food-safe suitability",4:"Confirm risk assessment exists"}},
+{l:2,t:["Notify &","prepare bay"],h:"Notify and prepare for delivery",n:"Step two. The Buyer notifies Stores of the delivery. The Stores Controller schedules it, readies the receiving bay and spill kit, and makes sure only trained, authorised staff will receive the chemicals.",d:{0:"Notify Stores of delivery date",2:"Prepare bay, spill kit and trained staff"}},
+{l:1,t:["Vehicle &","load check"],h:"Inspect the vehicle and load",n:"Step three. The driver arrives and presents transport documents and hazard labelling. The Stores Controller checks the load is secured, and looks for leaks, spills or odours.",d:{1:"Present transport documents and labelling",2:"Check load is secure; no leaks or odours"}},
+{l:2,t:["Verify","documents"],h:"Verify documents against the order",n:"Step four. The Stores Controller matches the delivery note, purchase order and SDS, confirming product name, grade, quantity, batch number and expiry date. The Buyer resolves any discrepancy with the supplier.",d:{2:"Match delivery note, PO and SDS; check batch and expiry",0:"Resolve discrepancies with supplier"}},
+{l:2,t:["Inspect","containers"],h:"Inspect the containers",n:"Step five. The Stores Controller inspects every container for damage, leaks, bulging, corrosion and intact seals, and confirms labels are legible. Damaged or unlabelled containers are rejected and recorded. The Quality Manager decides on doubtful stock.",d:{2:"Inspect containers; reject and record damaged stock",3:"Decide on doubtful or non-conforming stock"}},
+{l:2,t:["Offload","safely"],h:"Offload safely",n:"Step six. The Stores Controller offloads in correct PPE using approved handling equipment. Containers are never rolled, dropped or dragged. The driver and all unauthorised persons keep clear.",d:{2:"Offload with PPE and approved equipment",1:"Stay clear of the offloading area"}},
+{l:2,t:["Record","receipt"],h:"Record the receipt",n:"Step seven. The Stores Controller logs product, quantity, batch, supplier, date and storage location in the chemical register, and files the SDS where every user can reach it.",d:{2:"Update chemical register; file SDS"}},
+{l:2,t:["Segregate","& store"],h:"Segregate and store correctly",n:"Step eight. Chemicals go promptly to the designated store. The Stores Controller segregates incompatibles such as acids from alkalis, and oxidisers from flammables, in a ventilated, locked, bunded area away from food, packaging and ignition sources.",d:{2:"Segregate incompatibles; store in locked, bunded area"}},
+{l:4,t:["Verify storage","controls"],h:"Verify storage controls",n:"Step nine. The Risk Manager verifies signage, shelf labelling, spill kit, eyewash, fire extinguisher and emergency numbers are in place and working.",d:{4:"Verify signage, spill kit, eyewash, extinguisher",2:"Correct any gaps found"}},
+{l:3,t:["Review &","monitor"],h:"Review and monitor",n:"Step ten. Stores inspects stock, containers and bunds regularly and applies first in, first out. The Quality Manager signs off inspections, and the Risk Manager audits, follows up incidents and reviews SDSs and the risk assessment at least annually. The process is complete.",d:{2:"Regular inspections, FIFO, remove expired stock",3:"Sign off inspections",4:"Audit, follow up incidents, annual review"}}];
+S[0].l=0;
+const W=118,X0=150,LH=78,NW=100,NH=46,H=L.length*LH;
+const cx=i=>X0+i*W+NW/2,cy=i=>S[i].l*LH+LH/2;
+const $=id=>document.getElementById(id);
+let g='<svg id="sv" width="'+(X0+S.length*W+20)+'" height="'+H+'">';
+g+='<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L8,4L0,8z" fill="currentColor" style="color:var(--mu)"/></marker></defs>';
+L.forEach((r,i)=>{g+='<rect class="ln" id="ln'+i+'" x="0" y="'+i*LH+'" width="100%" height="'+LH+'"/><text class="lt" x="10" y="'+(i*LH+30)+'">'+r[0]+'</text><text class="ls" x="10" y="'+(i*LH+46)+'">'+r[1]+'</text>'});
+for(let i=0;i<S.length-1;i++){const a=cx(i)+NW/2,b=cx(i+1)-NW/2,m=(a+b)/2;g+='<path class="cn" id="cn'+i+'" marker-end="url(#ar)" d="M'+a+','+cy(i)+' H'+m+' V'+cy(i+1)+' H'+b+'"/>'}
+S.forEach((s,i)=>{g+='<g class="nd" id="nd'+i+'" data-i="'+i+'"><rect x="'+(cx(i)-NW/2)+'" y="'+(cy(i)-NH/2)+'" width="'+NW+'" height="'+NH+'" rx="8"/><text class="n" x="'+cx(i)+'" y="'+(cy(i)-8)+'">'+(i+1)+'</text><text x="'+cx(i)+'" y="'+(cy(i)+5)+'">'+s.t[0]+'</text><text x="'+cx(i)+'" y="'+(cy(i)+18)+'">'+s.t[1]+'</text></g>'});
+g+='<circle id="tok" r="8" cx="0" cy="0" style="transform:translate('+(cx(0)-NW/2-14)+'px,'+cy(0)+'px);opacity:0"/></svg>';
+$('map').innerHTML=g;
+let idx=-1,run=false,paused=false,tm=null,gen=0;
+const syn=window.speechSynthesis;
+function show(i){
+ const s=S[i];
+ document.querySelectorAll('.nd').forEach((e,k)=>{e.classList.toggle('cur',k===i);e.classList.toggle('done',k<i)});
+ S.forEach((_,k)=>{const c=$('cn'+k);if(c)c.classList.toggle('done',k<i)});
+ L.forEach((_,k)=>$('ln'+k).classList.toggle('on',k in s.d));
+ const t=$('tok');t.style.opacity=1;t.style.transform='translate('+(cx(i)-NW/2-14)+'px,'+cy(i)+'px)';
+ $('pg').style.width=((i+1)/S.length*100)+'%';$('ct').textContent='Step '+(i+1)+' / '+S.length;
+ const sc=$('map'),n=$('nd'+i).getBoundingClientRect(),m=sc.getBoundingClientRect();
+ sc.scrollTo({left:sc.scrollLeft+n.left-m.left-m.width/2+NW/2,behavior:'smooth'});
+}
+function stop(){gen++;clearTimeout(tm);if(syn)syn.cancel()}
+function play(i){
+ stop();idx=i;show(i);const my=gen,txt=S[i].h+'. '+S[i].n;
+ const next=()=>{if(my!==gen)return;gen++;clearTimeout(tm);if(i<S.length-1)tm=setTimeout(()=>play(i+1),700);else finish()};
+ if($('vo').checked&&syn){
+  const u=new SpeechSynthesisUtterance(txt);u.lang='en-ZA';u.rate=.95;u.onend=next;u.onerror=()=>{if(my===gen)tm=setTimeout(next,2000)};
+  syn.speak(u);tm=setTimeout(next,txt.length*110+6000);
+ }else tm=setTimeout(next,3500);
+}
+function finish(){document.querySelectorAll('.nd').forEach(e=>{e.classList.remove('cur');e.classList.add('done')});S.forEach((_,k)=>{const c=$('cn'+k);if(c)c.classList.add('done')});tm=setTimeout(()=>{if(!paused)play(0)},3000)}
+$('pz').onclick=()=>{
+ if(!run)return;
+ if(!paused){paused=true;stop();$('pz').textContent='▶ Resume'}
+ else{paused=false;$('pz').textContent='⏸ Pause';play(Math.max(idx,0))}
+};
+$('vo').onchange=()=>{if(run&&!paused)play(idx)};
+document.querySelectorAll('.nd').forEach(e=>e.onclick=()=>{
+ const i=+e.dataset.i;stop();show(i);idx=i;run=true;paused=true;$('pz').disabled=false;$('pz').textContent='▶ Resume'});
+run=true;$('pz').disabled=false;play(0);
+</script>
 </body>
 </html>
